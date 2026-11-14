@@ -75,18 +75,18 @@
 
 - [x] 5.1 Run `snapcraft pack` in LXD or Multipass; confirm the snap is
   produced without build errors.
-- [ ] 5.2 Install with `sudo snap install --dangerous ./limusic_1.3.0_amd64.snap`.
-- [ ] 5.3 Verify the app opens, the login webview loads, and audio playback
+- [x] 5.2 Install with `sudo snap install --dangerous ./limusic_1.3.0_amd64.snap`.
+- [x] 5.3 Verify the app opens, the login webview loads, and audio playback
   starts (libmpv + `audio-playback`).
-- [ ] 5.4 Verify media keys/MPRIS through
+- [x] 5.4 Verify media keys/MPRIS through
   `org.mpris.MediaPlayer2.limusic` and the desktop media widget.
-- [ ] 5.5 Verify the tray icon and its menu on a desktop with a
+- [x] 5.5 Verify the tray icon and its menu on a desktop with a
   StatusNotifierWatcher.
 - [ ] 5.6 Verify local music from a non-hidden home directory and from a
   connected removable volume.
-- [ ] 5.7 Verify Discord RPC fails soft (expected: no Rich Presence) and record
+- [x] 5.7 Verify Discord RPC fails soft (expected: no Rich Presence) and record
   the log message.
-- [ ] 5.8 Run `snap connections limusic` and confirm only the documented
+- [x] 5.8 Run `snap connections limusic` and confirm only the documented
   interfaces are connected; connect `removable-media` manually if needed.
 - [ ] 5.9 Run `snappy-debug` while exercising the app, review AppArmor denials,
   and adjust only if a documented feature is blocked.

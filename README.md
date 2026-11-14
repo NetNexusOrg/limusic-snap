@@ -178,6 +178,10 @@ Actions workflow yet.
 - **Video codecs:** the GNOME content snap includes VP8/VP9/Opus and Matroska
   GStreamer plugins but not `libgstlibav`. H.264/AAC-only music videos may not
   play. Audio playback is unaffected because it uses libmpv.
+- **Memory-pressure telemetry:** WebKit's `PressureMonitor` cannot read
+  `/proc/zoneinfo` or the Snap's cgroup `memory.current` under strict
+  confinement, so AppArmor logs repeated denials. Playback and the UI are
+  unaffected. No broad `system-observe` plug is added for this optional signal.
 
 ## Credits
 
