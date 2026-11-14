@@ -9,6 +9,13 @@ source; the build fetches the upstream `v1.3.0` tag from Git.
 > Limusic is developed by SimoHypers and licensed under GPL-3.0. This Snap is
 > not affiliated with or endorsed by the upstream author.
 
+## Download
+
+Prebuilt packages are published on the
+[GitHub releases page](https://github.com/NetNexusOrg/limusic-snap/releases).
+The current release is `v1.3.0`; download `limusic_1.3.0_amd64.snap` and its
+`.sha256` file, then follow [Install locally](#install-locally).
+
 ## Requirements
 
 - Ubuntu 24.04 or newer (the Snap uses `core24`)
