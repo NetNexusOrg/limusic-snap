@@ -83,12 +83,14 @@
 - [x] 5.5 Verify the tray icon and its menu on a desktop with a
   StatusNotifierWatcher.
 - [ ] 5.6 Verify local music from a non-hidden home directory and from a
-  connected removable volume.
+  connected removable volume. Home library verified (170 tracks imported);
+  removable-volume path still needs a physical device and manual
+  `removable-media` connection.
 - [x] 5.7 Verify Discord RPC fails soft (expected: no Rich Presence) and record
   the log message.
 - [x] 5.8 Run `snap connections limusic` and confirm only the documented
   interfaces are connected; connect `removable-media` manually if needed.
-- [ ] 5.9 Run `snappy-debug` while exercising the app, review AppArmor denials,
+- [x] 5.9 Run `snappy-debug` while exercising the app, review AppArmor denials,
   and adjust only if a documented feature is blocked.
 - [x] 5.10 Run `snapcraft lint` and fix relevant warnings; record accepted
   findings.
