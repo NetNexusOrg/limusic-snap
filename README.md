@@ -162,6 +162,23 @@ the desktop `Exec=`, and the documentation together. Automated CI builds are a
 separate follow-up change; this packaging repository does not include a GitHub
 Actions workflow yet.
 
+## Interfaces
+
+The Snap declares the minimum needed for its documented behavior:
+
+- `network` — YouTube Music, Last.fm and network playback.
+- `network-bind` — the app's loopback video/audio proxies.
+- `network-status` — lets WebKit's desktop-portal proxy/network lookup see that
+  the Snap has network access. Without this marker interface, Google login fails
+  with `org.freedesktop.portal.Error.NotAllowed: This call is not available
+  inside the sandbox`. It is auto-connected and grants no payload access.
+- `audio-playback` — libmpv output through PulseAudio/PipeWire.
+- `home` — local music in non-hidden home directories.
+- `removable-media` — local music on removable volumes; connect it manually.
+- `mpris` slot — owns `org.mpris.MediaPlayer2.limusic` for media keys/widgets.
+
+Desktop, display, GPU and settings interfaces come from the GNOME extension.
+
 ## Strict-confinement limitations
 
 - **Discord Rich Presence:** the host Discord IPC socket is outside the Snap's

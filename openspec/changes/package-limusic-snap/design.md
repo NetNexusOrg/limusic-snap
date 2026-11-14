@@ -193,6 +193,7 @@ vars (unreliable across LXD/Multipass); commit a keys file (forbidden).
 | --- | --- |
 | `network` | YouTube Music API, streams, Last.fm, sync server. |
 | `network-bind` | Upstream runs a loopback HTTP proxy for music videos (`videoproxy.rs`); binding a localhost port needs this, not `network`. |
+| `network-status` | WebKit asks the desktop portal for proxy/network status. `xdp-app-info-snap.c` sets `HAS_NETWORK` only when snapd reports `HasNetworkStatus`, which requires this marker interface; without it the portal returns `org.freedesktop.portal.Error.NotAllowed` and Google login fails. It is auto-connected and grants no payload access. |
 | `audio-playback` | libmpv audio output through PulseAudio/PipeWire. |
 | `home` | Read local music in non-hidden home directories. |
 | `removable-media` | Read local music on removable volumes; not auto-connected, documented. |

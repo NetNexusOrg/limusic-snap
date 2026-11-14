@@ -137,7 +137,10 @@ The Snap MUST declare only the interfaces needed for its documented behavior.
 
 - **WHEN** the snap's plugs and slots are reviewed
 - **THEN** the only explicitly declared plugs are `network`, `network-bind`,
-  `audio-playback`, `home` and `removable-media`
+  `network-status`, `audio-playback`, `home` and `removable-media`
+- **AND** `network-status` is present because WebKit's portal proxy/network
+  status lookup returns `org.freedesktop.portal.Error.NotAllowed` without it,
+  breaking Google login
 - **AND** desktop, GPU, display and settings interfaces come from the GNOME
   extension rather than being duplicated by hand
 - **AND** no interface is added for Discord IPC or host autostart, because no

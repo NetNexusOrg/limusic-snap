@@ -41,6 +41,10 @@ apps:
     plugs:
       - network
       - network-bind
+      # WebKit asks the desktop portal for network/proxy status. The portal only
+      # reports access when the snap has the network-status interface, so Google
+      # login fails with portal.Error.NotAllowed without this marker plug.
+      - network-status
       - audio-playback
       - home
       - removable-media
