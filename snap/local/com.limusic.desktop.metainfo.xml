@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.limusic.desktop</id>
+  <name>Limusic</name>
+  <summary>Desktop YouTube Music client</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+
+  <description>
+    <p>
+      Limusic is a feature-rich desktop YouTube Music client built with Tauri,
+      Rust and SvelteKit. It supports streaming, local music, synced lyrics,
+      music videos, media keys and desktop integration.
+    </p>
+    <p>
+      This is an unofficial community Snap package. It is not affiliated with
+      or endorsed by the upstream author. Limusic itself is developed by
+      SimoHypers and is licensed under GPL-3.0.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">limusic.desktop</launchable>
+
+  <url type="homepage">https://limusic.app</url>
+  <url type="bugtracker">https://github.com/NetNexusOrg/limusic-snap/issues</url>
+  <url type="vcs-browser">https://github.com/SimoHypers/limusic</url>
+
+  <developer id="com.limusic">
+    <name>SimoHypers</name>
+  </developer>
+
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+    <category>Music</category>
+  </categories>
+
+  <content_rating type="oars-1.1"/>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/SimoHypers/limusic/v1.3.0/website/src/assets/screen-playlist.webp</image>
+      <caption>A playlist in Limusic</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/SimoHypers/limusic/v1.3.0/website/src/assets/screen-lyrics.webp</image>
+      <caption>Word-by-word synced lyrics</caption>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.3.0" date="2026-10-19"/>
+  </releases>
+</component>

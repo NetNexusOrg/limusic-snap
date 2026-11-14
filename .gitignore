@@ -1,0 +1,32 @@
+# Snapcraft build artifacts
+parts/
+stage/
+prime/
+*.snap
+*.snap.*
+*.build
+*.build-info
+.snapcraft/
+snap/.snapcraft/
+snapcraft-*.txt
+
+# Build output
+target/
+ui/build/
+ui/.svelte-kit/
+ui/node_modules/
+
+# Secrets and local environment
+snap/local/lastfm.keys
+.env
+.env.*
+
+# Logs
+*.log
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*~

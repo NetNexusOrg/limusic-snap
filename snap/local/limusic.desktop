@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Limusic
+GenericName=YouTube Music Client
+Comment=Desktop YouTube Music client
+Exec=limusic
+Icon=/usr/share/icons/hicolor/512x512/apps/limusic-app.png
+Terminal=false
+Categories=AudioVideo;Audio;Music;
+StartupWMClass=limusic-app
+Keywords=music;youtube;streaming;

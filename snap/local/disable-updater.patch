@@ -1,0 +1,13 @@
+diff --git a/ui/src/lib/updater.svelte.ts b/ui/src/lib/updater.svelte.ts
+index 1e841ef..067ff5f 100644
+--- a/ui/src/lib/updater.svelte.ts
++++ b/ui/src/lib/updater.svelte.ts
+@@ -29,6 +29,8 @@ export const updateState = $state({
+ let pending: Update | null = null;
+ 
+ async function look(): Promise<boolean> {
++	// Snap build: snapd owns updates. Never contact the Tauri updater.
++	return false;
+ 	let u: Update | null;
+ 	const beta = (await getSettings()).update_channel === 'beta';
+ 	const current = await getVersion();

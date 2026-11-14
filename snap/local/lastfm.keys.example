@@ -1,0 +1,4 @@
+# Copy this file to snap/local/lastfm.keys and fill in your own values.
+# The real file is gitignored and must never be committed.
+LIMUSIC_LASTFM_API_KEY=your_lastfm_api_key
+LIMUSIC_LASTFM_API_SECRET=your_lastfm_api_secret
