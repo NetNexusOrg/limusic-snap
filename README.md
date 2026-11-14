@@ -56,6 +56,20 @@ features. No metadata, desktop-entry or confinement warnings were reported.
 the libraries under `blas/` and `lapack/` and rely on `update-alternatives` for
 the top-level soname symlinks, so the snap build creates those symlinks itself.
 
+## CI
+
+`.github/workflows/build-snap.yml` builds the Snap on `ubuntu-24.04` with
+`canonical/setup-lxd@v1` and `snapcraft pack --use-lxd`, runs
+`snapcraft lint`, writes a SHA-256 checksum and uploads both files as the
+`limusic-snap` workflow artifact. It runs on pushes to `main`, `v*` tags,
+pull requests touching `snap/**` or the workflow, and manual dispatch.
+
+Last.fm is optional in CI: when the repository secrets `LASTFM_API_KEY` and
+`LASTFM_API_SECRET` exist, the workflow writes the gitignored
+`snap/local/lastfm.keys` before building; otherwise it emits a warning and
+builds without Last.fm support. CI never publishes to the Snap Store or creates
+a GitHub Release.
+
 ## Install locally
 
 ```bash

@@ -103,5 +103,6 @@
   disabled in the Snap.
 - [x] 6.3 Document the Snap Store follow-up separately: register the `limusic`
   name, publish to `edge`, test, then promote to `stable`.
-- [ ] 6.4 Add a separate GitHub Actions workflow change for CI builds; do not
-  mix it into this packaging change.
+- [x] 6.4 Add a separate GitHub Actions workflow change for CI builds; do not
+  mix it into this packaging change. Implemented in
+  `openspec/changes/add-snap-ci-workflow`.

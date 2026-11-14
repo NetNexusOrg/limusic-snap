@@ -1,0 +1,73 @@
+name: Build Snap
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    paths:
+      - "snap/**"
+      - ".github/workflows/build-snap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snap-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up LXD
+        uses: canonical/setup-lxd@v1
+
+      - name: Install Snapcraft
+        run: sudo snap install snapcraft --classic
+
+      - name: Configure Last.fm credentials
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_API_SECRET: ${{ secrets.LASTFM_API_SECRET }}
+        run: |
+          if [ -n "${LASTFM_API_KEY}" ] && [ -n "${LASTFM_API_SECRET}" ]; then
+            umask 077
+            printf 'LIMUSIC_LASTFM_API_KEY=%s\nLIMUSIC_LASTFM_API_SECRET=%s\n' \
+              "$LASTFM_API_KEY" "$LASTFM_API_SECRET" > snap/local/lastfm.keys
+            echo "Last.fm credentials will be embedded in this build."
+          else
+            echo "::warning title=Last.fm not configured::LASTFM_API_KEY/LASTFM_API_SECRET secrets are missing; building without Last.fm support."
+          fi
+
+      - name: Build snap
+        run: sg lxd -c 'snapcraft pack --use-lxd'
+
+      - name: Lint snap
+        run: |
+          snap=$(ls limusic_*.snap | head -n1)
+          snapcraft lint "$snap"
+
+      - name: Generate checksum
+        run: |
+          snap=$(ls limusic_*.snap | head -n1)
+          sha256sum "$snap" > "$snap.sha256"
+          cat "$snap.sha256"
+
+      - name: Upload snap and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: limusic-snap
+          path: |
+            limusic_*.snap
+            limusic_*.snap.sha256
+          if-no-files-found: error
+          retention-days: 14
