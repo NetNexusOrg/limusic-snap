@@ -51,6 +51,11 @@ in by `libmpv2` (for example `libjackserver`, `libflite_*`, `libcaca++` and
 dependencies of libmpv and removing them selectively risks breaking playback
 features. No metadata, desktop-entry or confinement warnings were reported.
 
+`libblas3` and `liblapack3` are staged explicitly because `libsphinxbase3`
+(transitively pulled in by libmpv) links against them. Their packages install
+the libraries under `blas/` and `lapack/` and rely on `update-alternatives` for
+the top-level soname symlinks, so the snap build creates those symlinks itself.
+
 ## Install locally
 
 ```bash

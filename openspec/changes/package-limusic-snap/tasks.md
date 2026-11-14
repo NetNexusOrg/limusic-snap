@@ -33,8 +33,11 @@
   `curl`, `ca-certificates`, `libmpv-dev`, `libssl-dev`,
   `libayatana-appindicator3-dev`, `libdbus-1-dev`, plus any SDK
   gap found during the first build).
-- [x] 2.5 Add `stage-packages: [libmpv2]` and verify Snapcraft resolves its
+- [x] 2.5 Add `stage-packages` (`libmpv2`, plus `libblas3` and `liblapack3` for
+  `libsphinxbase3`'s soname dependencies) and verify Snapcraft resolves the
   runtime dependencies; do not stage WebKit, GTK, GStreamer or appindicator.
+  Create the BLAS/LAPACK top-level soname symlinks in `override-build` because
+  Snapcraft does not run `update-alternatives`.
 
 ## 3. Build logic
 

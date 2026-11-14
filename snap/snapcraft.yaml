@@ -70,6 +70,10 @@ parts:
       - libdbus-1-dev
     stage-packages:
       - libmpv2
+      # libsphinxbase3 (pulled in by libmpv2) links against BLAS/LAPACK, but
+      # Snapcraft's dependency resolver does not stage the virtual providers.
+      - libblas3
+      - liblapack3
     override-pull: |
       set -eux
       craftctl default
@@ -140,3 +144,11 @@ parts:
         "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/256x256/apps/limusic-app.png"
       install -Dm644 src-tauri/icons/icon.png \
         "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/512x512/apps/limusic-app.png"
+
+      # libblas3/liblapack3 install into blas/ and lapack/ subdirectories and
+      # rely on update-alternatives for the top-level soname symlinks. Snapcraft
+      # does not run update-alternatives, so create the symlinks explicitly.
+      libdir="$CRAFT_PART_INSTALL/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR"
+      install -d "$libdir"
+      ln -sfn blas/libblas.so.3 "$libdir/libblas.so.3"
+      ln -sfn lapack/liblapack.so.3 "$libdir/liblapack.so.3"

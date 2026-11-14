@@ -68,13 +68,20 @@ build and runtime stack and the desktop/GPU/display interfaces. It avoids stagin
 of WebKit, GTK, GStreamer, or Mesa, which would duplicate the content snap and
 risk ABI mismatches.
 
-`stage-packages` contains `libmpv2` only. Snapcraft resolves its runtime
-dependencies (FFmpeg, libass, PulseAudio, PipeWire, JACK, etc.). `libmpv2` in
-noble is 0.37.0, above upstream's 0.35 minimum. `libssl3t64` is not staged
-because `core24` already provides OpenSSL 3. `libayatana-appindicator` is not
-staged because upstream's Linux tray uses `ksni` and the binary has no
-`DT_NEEDED` entry for it. If a future upstream build unexpectedly links it, add
-`libayatana-appindicator3-1` to `stage-packages` and re-test the tray.
+`stage-packages` contains `libmpv2`, `libblas3` and `liblapack3`.
+Snapcraft resolves `libmpv2`'s runtime dependencies (FFmpeg, libass,
+PulseAudio, PipeWire, JACK, etc.). `libmpv2` in noble is 0.37.0, above
+upstream's 0.35 minimum. `libsphinxbase3`, pulled in transitively by libmpv,
+links against `libblas.so.3` and `liblapack.so.3`; Snapcraft does not stage
+the virtual providers, so `libblas3` and `liblapack3` are explicit. Both
+packages install their libraries under `blas/` and `lapack/` and rely on
+`update-alternatives` for the top-level soname symlinks, which Snapcraft does
+not run; `override-build` creates those symlinks explicitly.
+`libssl3t64` is not staged because `core24` already provides OpenSSL 3.
+`libayatana-appindicator` is not staged because upstream's Linux tray uses
+`ksni` and the binary has no `DT_NEEDED` entry for it. If a future upstream
+build unexpectedly links it, add `libayatana-appindicator3-1` to
+`stage-packages` and re-test the tray.
 
 **Alternatives:** stage `libwebkit2gtk-4.1-0`, `libgtk-3-0`, GStreamer plugins
 (rejected: duplicates the GNOME content snap); use the KDE extension (rejected:
