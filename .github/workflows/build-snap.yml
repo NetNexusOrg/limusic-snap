@@ -49,7 +49,9 @@ jobs:
           fi
 
       - name: Build snap
-        run: sg lxd -c 'snapcraft pack --use-lxd'
+        run: |
+          sudo usermod -aG lxd "$USER"
+          sg lxd -c 'snapcraft pack --use-lxd'
 
       - name: Lint snap
         run: |
