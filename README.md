@@ -172,9 +172,8 @@ snapcraft release limusic <revision> stable
 ```
 
 If the `limusic` name is unavailable, choose a store name and update `name`,
-the desktop `Exec=`, and the documentation together. Automated CI builds are a
-separate follow-up change; this packaging repository does not include a GitHub
-Actions workflow yet.
+the desktop `Exec=`, and the documentation together. Automated CI builds are
+provided by `.github/workflows/build-snap.yml`; see the CI section above.
 
 ## Interfaces
 
