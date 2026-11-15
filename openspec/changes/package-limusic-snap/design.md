@@ -54,7 +54,8 @@ must document these rather than invent interfaces.
 ### 1. Pin upstream `v1.3.0`
 
 Use `source: https://github.com/SimoHypers/limusic.git` with
-`source-tag: v1.3.0` and `version: "1.3.0"`. The release-candidate line is
+`source-tag: v1.3.0` and `version: "1.3.0-1"` (packaging revision for the
+Last.fm-enabled build). The release-candidate line is
 excluded because the snap is `grade: stable`. No `source-depth` is required,
 but a shallow fetch is acceptable; the tag is immutable.
 

@@ -20,7 +20,7 @@
 ## 2. Snap recipe
 
 - [x] 2.1 Write `snap/snapcraft.yaml` with `name: limusic`, `base: core24`,
-  `grade: stable`, `confinement: strict`, `platforms: amd64`, `version: "1.3.0"`,
+  `grade: stable`, `confinement: strict`, `platforms: amd64`, `version: "1.3.0-1"`,
   `source-tag: v1.3.0`, and `apps.limusic.extensions: [gnome]`.
 - [x] 2.2 Add complete metadata: title, summary, unofficial/credit description,
   `license: GPL-3.0-only`, website, source-code, contact, issues, icon,
@@ -75,7 +75,7 @@
 
 - [x] 5.1 Run `snapcraft pack` in LXD or Multipass; confirm the snap is
   produced without build errors.
-- [x] 5.2 Install with `sudo snap install --dangerous ./limusic_1.3.0_amd64.snap`.
+- [x] 5.2 Install with `sudo snap install --dangerous ./limusic_1.3.0-1_amd64.snap`.
 - [x] 5.3 Verify the app opens, the login webview loads, and audio playback
   starts (libmpv + `audio-playback`).
 - [x] 5.4 Verify media keys/MPRIS through
