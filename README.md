@@ -187,7 +187,9 @@ The Snap declares the minimum needed for its documented behavior:
   inside the sandbox`. It is auto-connected and grants no payload access.
 - `audio-playback` — libmpv output through PulseAudio/PipeWire.
 - `home` — local music in non-hidden home directories.
-- `removable-media` — local music on removable volumes; connect it manually.
+- `removable-media` — local music on removable volumes. snapd does not
+  auto-connect this interface for public snaps; connect it manually with
+  `sudo snap connect limusic:removable-media` only when needed.
 - `mpris` slot — owns `org.mpris.MediaPlayer2.limusic` for media keys/widgets.
 
 Desktop, display, GPU and settings interfaces come from the GNOME extension.
