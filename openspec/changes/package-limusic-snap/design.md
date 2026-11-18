@@ -3,9 +3,9 @@
 ## Context
 
 Limusic is a Tauri 2 application: a SvelteKit frontend in `ui/` and a Rust
-workspace in `src-tauri/` plus `crates/`. Upstream publishes `v1.3.0` as the
-latest stable release; `v1.4.0-rc.7` is a prerelease. The `v1.3.0` tree has no
-`.gitmodules`, so no submodule handling is needed.
+workspace in `src-tauri/` plus `crates/`. Upstream publishes `v1.4.0` as the
+latest stable release. The `v1.4.0` tree has no `.gitmodules`, so no submodule
+handling is needed.
 
 The Linux build dynamically links WebKitGTK 4.1, GTK 3 and libmpv. Upstream
 documents Rust stable, Node, pnpm, `libmpv-dev`, `libwebkit2gtk-4.1-dev`,
@@ -33,7 +33,7 @@ must document these rather than invent interfaces.
 
 **Goals:**
 
-- Produce a `core24`/`strict`/`amd64` Snap from upstream `v1.3.0` with no
+- Produce a `core24`/`strict`/`amd64` Snap from upstream `v1.4.0` with no
   vendored source.
 - Build the UI and backend reproducibly with documented tool versions.
 - Provide accurate metadata, desktop entry, AppStream metainfo and icons.
@@ -51,15 +51,15 @@ must document these rather than invent interfaces.
 
 ## Decisions
 
-### 1. Pin upstream `v1.3.0`
+### 1. Pin upstream `v1.4.0`
 
 Use `source: https://github.com/SimoHypers/limusic.git` with
-`source-tag: v1.3.0` and `version: "1.3.0-1"` (packaging revision for the
-Last.fm-enabled build). The release-candidate line is
-excluded because the snap is `grade: stable`. No `source-depth` is required,
-but a shallow fetch is acceptable; the tag is immutable.
+`source-tag: v1.4.0` and `version: "1.4.0-1"` (packaging revision for the
+Last.fm-enabled build). Release candidates are excluded because the snap is
+`grade: stable`. No `source-depth` is required, but a shallow fetch is
+acceptable; the tag is immutable.
 
-**Alternatives:** `v1.4.0-rc.7` (rejected: prerelease); tracking `master`
+**Alternatives:** `v1.4.0-rc.11` (rejected: prerelease); tracking `master`
 (rejected: not reproducible, unstable).
 
 ### 2. Use the GNOME extension, stage only libmpv
@@ -113,7 +113,7 @@ and `libdbus-1-dev`. The GNOME SDK
 supplies the GTK 3 / WebKitGTK 4.1 / librsvg development files; if the first
 build reports a missing header or `.pc` file, add only that specific noble
 `-dev` package. The appindicator and dbus development packages mirror upstream
-CI and are build-only: the released `v1.3.0` binary has no `DT_NEEDED` entry for
+CI and are build-only: the released `v1.4.0` binary has no `DT_NEEDED` entry for
 libayatana-appindicator, so the runtime library is not staged.
 
 **Alternatives:** `tauri build --bundles deb` then extract the `.deb`
@@ -270,7 +270,7 @@ credits SimoHypers and the Limusic project.
 - **MPRIS slot review:** the `mpris` slot is a standard snapd interface; the
   `name: limusic` attribute must match upstream's `dbus_name`. If upstream
   changes the name, update both.
-- **Updater patch drift:** the patch targets `v1.3.0` exactly. A future version
+- **Updater patch drift:** the patch targets `v1.4.0` exactly. A future version
   bump must refresh the patch or replace it with an upstream-supported flag.
 - **Last.fm credentials:** without the local keys file the build is valid but
   Last.fm is disabled. This is intentional and documented.

@@ -3,7 +3,7 @@
 ## 0. Planning and validation
 
 - [x] 0.1 Review `proposal.md`, `design.md`, and both specs; confirm upstream
-  `v1.3.0`, the `NetNexusOrg/limusic-snap` contact URL, and the documented
+  `v1.4.0`, the `NetNexusOrg/limusic-snap` contact URL, and the documented
   strict-confinement limitations.
 - [x] 0.2 Confirm the GNOME extension + staged `libmpv2` approach and the
   `network-bind` requirement for the loopback video proxy.
@@ -20,8 +20,8 @@
 ## 2. Snap recipe
 
 - [x] 2.1 Write `snap/snapcraft.yaml` with `name: limusic`, `base: core24`,
-  `grade: stable`, `confinement: strict`, `platforms: amd64`, `version: "1.3.0-1"`,
-  `source-tag: v1.3.0`, and `apps.limusic.extensions: [gnome]`.
+  `grade: stable`, `confinement: strict`, `platforms: amd64`, `version: "1.4.0-1"`,
+  `source-tag: v1.4.0`, and `apps.limusic.extensions: [gnome]`.
 - [x] 2.2 Add complete metadata: title, summary, unofficial/credit description,
   `license: GPL-3.0-only`, website, source-code, contact, issues, icon,
   `common-id: limusic`, and `desktop: usr/share/applications/limusic.desktop`.
@@ -75,7 +75,7 @@
 
 - [x] 5.1 Run `snapcraft pack` in LXD or Multipass; confirm the snap is
   produced without build errors.
-- [x] 5.2 Install with `sudo snap install --dangerous ./limusic_1.3.0-1_amd64.snap`.
+- [x] 5.2 Install with `sudo snap install --dangerous ./limusic_1.4.0-1_amd64.snap`.
 - [x] 5.3 Verify the app opens, the login webview loads, and audio playback
   starts (libmpv + `audio-playback`).
 - [x] 5.4 Verify media keys/MPRIS through

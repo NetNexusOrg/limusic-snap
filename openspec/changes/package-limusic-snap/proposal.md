@@ -10,8 +10,8 @@ upstream application; it must not fork or vendor the upstream source.
 ## What Changes
 
 - Add a `core24` strict-confinement Snap recipe that builds upstream Limusic
-  `v1.3.0` from its Git tag (the latest stable release; `v1.4.0-rc.7` is a
-  prerelease and is not used).
+  `v1.4.0` from its Git tag (the latest stable release; release candidates are
+  not used).
 - Build the SvelteKit UI with Node 22 + pnpm 10, then compile the Tauri/Rust
   backend with a stable Rust toolchain and Tauri CLI 2.11.5.
 - Use the Snapcraft GNOME extension (`gnome`) for the GTK 3 / WebKitGTK 4.1

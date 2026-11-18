@@ -17,9 +17,9 @@ the upstream source in the repository.
 #### Scenario: Latest stable release selected
 
 - **WHEN** the packaging change is prepared
-- **THEN** the selected tag is the latest stable upstream release (`v1.3.0` at
+- **THEN** the selected tag is the latest stable upstream release (`v1.4.0` at
   the time of writing), not a release candidate or other prerelease
-- **AND** `version` is `1.3.0-1` (packaging revision) and `source-tag` is `v1.3.0`
+- **AND** `version` is `1.4.0-1` (packaging revision) and `source-tag` is `v1.4.0`
 
 #### Scenario: Upstream has no submodules
 
@@ -129,7 +129,7 @@ unresolved relevant warnings.
 
 - **WHEN** a maintainer runs the documented `snapcraft pack` command in LXD or
   Multipass
-- **THEN** a `limusic_1.3.0-1_amd64.snap` is produced
+- **THEN** a `limusic_1.4.0-1_amd64.snap` is produced
 - **AND** it can be installed with
-  `sudo snap install --dangerous ./limusic_1.3.0-1_amd64.snap`
+  `sudo snap install --dangerous ./limusic_1.4.0-1_amd64.snap`
 - **AND** `snapcraft lint` has been run and its relevant findings addressed

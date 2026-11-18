@@ -4,7 +4,7 @@ Unofficial community Snap package for [Limusic](https://github.com/SimoHypers/li
 a feature-rich desktop YouTube Music client built with Tauri, Rust and SvelteKit.
 
 This repository is packaging-only. It does not vendor or fork the upstream
-source; the build fetches the upstream `v1.3.0` tag from Git.
+source; the build fetches the upstream `v1.4.0` tag from Git.
 
 > Limusic is developed by SimoHypers and licensed under GPL-3.0. This Snap is
 > not affiliated with or endorsed by the upstream author.
@@ -13,7 +13,7 @@ source; the build fetches the upstream `v1.3.0` tag from Git.
 
 Prebuilt packages are published on the
 [GitHub releases page](https://github.com/NetNexusOrg/limusic-snap/releases).
-The current release is `v1.3.0-1`; download `limusic_1.3.0-1_amd64.snap` and its
+The current release is `v1.4.0-1`; download `limusic_1.4.0-1_amd64.snap` and its
 `.sha256` file, then follow [Install locally](#install-locally).
 
 ## Requirements
@@ -39,7 +39,7 @@ From the repository root:
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.3.0-1_amd64.snap`.
+The result is `limusic_1.4.0-1_amd64.snap`.
 
 Building on the host with `--destructive-mode` is possible but only recommended
 on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
@@ -73,7 +73,7 @@ a GitHub Release.
 ## Install locally
 
 ```bash
-sudo snap install --dangerous ./limusic_1.3.0-1_amd64.snap
+sudo snap install --dangerous ./limusic_1.4.0-1_amd64.snap
 ```
 
 Connect removable media access if you keep music on external drives:
@@ -130,6 +130,8 @@ After installing:
 - [ ] The in-app updater does not offer a Tauri update.
 - [ ] Last.fm works when keys are present, or reports “not configured” without
       them.
+- [ ] A karaoke model downloads and vocal removal starts (best-effort under
+      confinement).
 
 Useful diagnostics:
 
@@ -137,7 +139,7 @@ Useful diagnostics:
 snap connections limusic
 sudo snap install snappy-debug
 snappy-debug
-snapcraft lint ./limusic_1.3.0-1_amd64.snap
+snapcraft lint ./limusic_1.4.0-1_amd64.snap
 ```
 
 ## Updates
@@ -160,7 +162,7 @@ the first upload:
 
 ```bash
 snapcraft register limusic
-snapcraft upload --release=edge ./limusic_1.3.0-1_amd64.snap
+snapcraft upload --release=edge ./limusic_1.4.0-1_amd64.snap
 ```
 
 Install the published edge build on a test machine, run the checklist above,
@@ -210,6 +212,13 @@ Desktop, display, GPU and settings interfaces come from the GNOME extension.
 - **Video codecs:** the GNOME content snap includes VP8/VP9/Opus and Matroska
   GStreamer plugins but not `libgstlibav`. H.264/AAC-only music videos may not
   play. Audio playback is unaffected because it uses libmpv.
+- **Karaoke:** the vocal-removal models download into the Snap's private data
+  directory, which works, but GPU acceleration is best-effort. It depends on
+  Vulkan/DRM access provided by the GNOME extension and has not been validated
+  under strict confinement; CPU processing always remains available.
+- **wallust / pywal palettes:** both read dotfiles (`~/.cache/wal`,
+  `~/.config/wallust`), which the `home` interface does not expose. Only the
+  built-in palettes and artwork-derived colors work in the Snap.
 - **Memory-pressure telemetry:** WebKit's `PressureMonitor` cannot read
   `/proc/zoneinfo` or the Snap's cgroup `memory.current` under strict
   confinement, so AppArmor logs repeated denials. Playback and the UI are
