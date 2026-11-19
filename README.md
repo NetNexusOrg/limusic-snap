@@ -1,238 +1,81 @@
 # Limusic Snap
 
-Unofficial community Snap package for [Limusic](https://github.com/SimoHypers/limusic),
-a feature-rich desktop YouTube Music client built with Tauri, Rust and SvelteKit.
+Unofficial Snap package for [Limusic](https://github.com/SimoHypers/limusic), a
+desktop YouTube Music client built with Tauri, Rust and SvelteKit.
 
-This repository is packaging-only. It does not vendor or fork the upstream
-source; the build fetches the upstream `v1.4.0` tag from Git.
+[![Latest release](https://img.shields.io/github/v/release/NetNexusOrg/limusic-snap?style=flat-square&label=release)](https://github.com/NetNexusOrg/limusic-snap/releases/latest)
+[![License](https://img.shields.io/github/license/NetNexusOrg/limusic-snap?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Ubuntu%2024.04%2B%20amd64-informational?style=flat-square)](#install)
 
-> Limusic is developed by SimoHypers and licensed under GPL-3.0. This Snap is
-> not affiliated with or endorsed by the upstream author.
+<p align="center">
+  <img src="docs/screenshots/screen-playlist.webp" alt="Playlist view" width="49%">
+  <img src="docs/screenshots/screen-lyrics.webp" alt="Word-by-word synced lyrics" width="49%">
+</p>
+<p align="center">
+  <img src="docs/screenshots/screen-album.webp" alt="Album page with colors adapted to the cover" width="49%">
+  <img src="docs/screenshots/screen-video.webp" alt="Music video with lyrics alongside" width="49%">
+</p>
 
-## Download
+> Limusic is developed by SimoHypers and licensed GPL-3.0. This Snap is not
+> affiliated with or endorsed by the upstream author.
 
-Prebuilt packages are published on the
-[GitHub releases page](https://github.com/NetNexusOrg/limusic-snap/releases).
-The current release is `v1.4.0-1`; download `limusic_1.4.0-1_amd64.snap` and its
-`.sha256` file, then follow [Install locally](#install-locally).
-
-## Requirements
-
-- Ubuntu 24.04 or newer (the Snap uses `core24`)
-- `snapcraft` 8 or newer
-- LXD or Multipass for a clean build environment
-- Network access during the build
-
-Install the build tools:
+## Install
 
 ```bash
-sudo snap install snapcraft --classic
-sudo snap install lxd
-lxd init --minimal
-```
-
-## Build
-
-From the repository root:
-
-```bash
-snapcraft pack --use-lxd
-```
-
-The result is `limusic_1.4.0-1_amd64.snap`.
-
-Building on the host with `--destructive-mode` is possible but only recommended
-on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
-the host.
-
-`snapcraft lint` reports unused-library warnings for optional dependencies pulled
-in by `libmpv2` (for example `libjackserver`, `libflite_*`, `libcaca++` and
-`libtheora`). They are left in place because they are transitive runtime
-dependencies of libmpv and removing them selectively risks breaking playback
-features. No metadata, desktop-entry or confinement warnings were reported.
-
-`libblas3` and `liblapack3` are staged explicitly because `libsphinxbase3`
-(transitively pulled in by libmpv) links against them. Their packages install
-the libraries under `blas/` and `lapack/` and rely on `update-alternatives` for
-the top-level soname symlinks, so the snap build creates those symlinks itself.
-
-## CI
-
-`.github/workflows/build-snap.yml` builds the Snap on `ubuntu-24.04` with
-`canonical/setup-lxd@v1` and `snapcraft pack --use-lxd`, runs
-`snapcraft lint`, writes a SHA-256 checksum and uploads both files as the
-`limusic-snap` workflow artifact. It runs on pushes to `main`, `v*` tags,
-pull requests touching `snap/**` or the workflow, and manual dispatch.
-
-Last.fm is optional in CI: when the repository secrets `LASTFM_API_KEY` and
-`LASTFM_API_SECRET` exist, the workflow writes the gitignored
-`snap/local/lastfm.keys` before building; otherwise it emits a warning and
-builds without Last.fm support. CI never publishes to the Snap Store or creates
-a GitHub Release.
-
-## Install locally
-
-```bash
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.0-1/limusic_1.4.0-1_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.0-1/limusic_1.4.0-1_amd64.snap.sha256
+sha256sum -c limusic_1.4.0-1_amd64.snap.sha256
 sudo snap install --dangerous ./limusic_1.4.0-1_amd64.snap
 ```
 
-Connect removable media access if you keep music on external drives:
+Music on external drives needs a one-time connection:
 
 ```bash
 sudo snap connect limusic:removable-media
 ```
 
-Run the app from the desktop menu or with:
+Ubuntu 24.04 or newer on `amd64`. The app appears in the desktop menu, or run
+`limusic` in a terminal.
+
+## What works
+
+- YouTube Music streaming and Google login.
+- Local music from your home directory.
+- Audio playback through libmpv, with MPRIS media keys and a tray icon.
+- Synced lyrics, artwork-based colors and music videos.
+- Last.fm scrobbling, with the API credentials built in.
+- Updates through snapd, not the in-app updater.
+
+## Known limitations
+
+- **Discord Rich Presence** — snapd has no interface for the host Discord socket.
+- **Single instance** — disabled, so more than one window can run.
+- **Start on login** — a strict Snap cannot write the host autostart file.
+- **H.264/AAC video** — may not play; audio is unaffected.
+- **Karaoke** — CPU always works, GPU acceleration is best-effort.
+- **wallust/pywal** — reads host dotfiles the `home` interface does not expose.
+
+Full details, diagnostics and workarounds:
+[docs/packaging.md](docs/packaging.md).
+
+## Build
 
 ```bash
-limusic
-```
-
-## Last.fm credentials
-
-Last.fm support is optional. The upstream build reads two compile-time values
-from `src-tauri/lastfm.keys`; this Snap copies them from a local, gitignored
-file before compiling.
-
-```bash
-cp snap/local/lastfm.keys.example snap/local/lastfm.keys
-# edit snap/local/lastfm.keys with your own API key and secret
+sudo snap install snapcraft --classic
+sudo snap install lxd && lxd init --minimal
 snapcraft pack --use-lxd
 ```
 
-The file format is:
+The result is `limusic_1.4.0-1_amd64.snap`. Build options, Last.fm credentials,
+CI, interfaces and publishing are documented in
+[docs/packaging.md](docs/packaging.md).
 
-```text
-LIMUSIC_LASTFM_API_KEY=...
-LIMUSIC_LASTFM_API_SECRET=...
-```
+## Links and credits
 
-`snap/local/lastfm.keys` is ignored by Git and must never be committed. If it is
-absent, the build still succeeds and Last.fm reports “not configured” in the
-app.
-
-The values are compiled into the resulting binary. Do not distribute or publish
-a Snap built with credentials you do not want embedded; use your own keys for
-local builds.
-
-## Verification checklist
-
-After installing:
-
-- [ ] The app opens and the window renders.
-- [ ] Google login loads in the WebKit view.
-- [ ] Audio playback works.
-- [ ] Media keys and the desktop media widget control playback through MPRIS.
-- [ ] The tray icon appears on a desktop with a StatusNotifierWatcher.
-- [ ] Local music under `$HOME` plays.
-- [ ] Local music on a connected removable volume plays.
-- [ ] Discord Rich Presence fails soft without crashing the app.
-- [ ] The in-app updater does not offer a Tauri update.
-- [ ] Last.fm works when keys are present, or reports “not configured” without
-      them.
-- [ ] A karaoke model downloads and vocal removal starts (best-effort under
-      confinement).
-
-Useful diagnostics:
-
-```bash
-snap connections limusic
-sudo snap install snappy-debug
-snappy-debug
-snapcraft lint ./limusic_1.4.0-1_amd64.snap
-```
-
-## Updates
-
-Snapd owns updates. The upstream Tauri updater is disabled only in this Snap
-build with a build-time patch, so the app never tries to replace its own files.
-When the Snap is published, update it with:
-
-```bash
-sudo snap refresh limusic
-```
-
-For a local build, rebuild and reinstall with `--dangerous`.
-
-## Publishing to the Snap Store
-
-Publishing is a separate step and is not required to build or test the Snap.
-The store name `limusic` must be registered and owned by the publisher before
-the first upload:
-
-```bash
-snapcraft register limusic
-snapcraft upload --release=edge ./limusic_1.4.0-1_amd64.snap
-```
-
-Install the published edge build on a test machine, run the checklist above,
-then promote the tested revision:
-
-```bash
-sudo snap install limusic --edge
-snapcraft release limusic <revision> stable
-```
-
-If the `limusic` name is unavailable, choose a store name and update `name`,
-the desktop `Exec=`, and the documentation together. Automated CI builds are
-provided by `.github/workflows/build-snap.yml`; see the CI section above.
-
-## Interfaces
-
-The Snap declares the minimum needed for its documented behavior:
-
-- `network` — YouTube Music, Last.fm and network playback.
-- `network-bind` — the app's loopback video/audio proxies.
-- `network-status` — lets WebKit's desktop-portal proxy/network lookup see that
-  the Snap has network access. Without this marker interface, Google login fails
-  with `org.freedesktop.portal.Error.NotAllowed: This call is not available
-  inside the sandbox`. It is auto-connected and grants no payload access.
-- `audio-playback` — libmpv output through PulseAudio/PipeWire.
-- `home` — local music in non-hidden home directories.
-- `removable-media` — local music on removable volumes. snapd does not
-  auto-connect this interface for public snaps; connect it manually with
-  `sudo snap connect limusic:removable-media` only when needed.
-- `mpris` slot — owns `org.mpris.MediaPlayer2.limusic` for media keys/widgets.
-
-Desktop, display, GPU and settings interfaces come from the GNOME extension.
-
-## Strict-confinement limitations
-
-- **Discord Rich Presence:** the host Discord IPC socket is outside the Snap's
-  private runtime directory, and snapd has no interface for it. Rich Presence is
-  unavailable; use the upstream `.deb` or AppImage if you need it.
-- **Single instance:** the Tauri single-instance plugin cannot own its D-Bus
-  name under strict confinement. The Snap sets `LIMUSIC_MULTI=1` to skip the
-  plugin; two instances can run at the same time.
-- **Start on login:** the Tauri autostart plugin writes inside the Snap's
-  private home, not the host's `~/.config/autostart`. The host desktop will not
-  read it.
-- **Global shortcuts:** X11 works through the `x11` interface. On Wayland the
-  desktop portal may ask for approval, so treat global shortcuts as best-effort.
-- **Video codecs:** the GNOME content snap includes VP8/VP9/Opus and Matroska
-  GStreamer plugins but not `libgstlibav`. H.264/AAC-only music videos may not
-  play. Audio playback is unaffected because it uses libmpv.
-- **Karaoke:** the vocal-removal models download into the Snap's private data
-  directory, which works, but GPU acceleration is best-effort. It depends on
-  Vulkan/DRM access provided by the GNOME extension and has not been validated
-  under strict confinement; CPU processing always remains available.
-- **wallust / pywal palettes:** both read dotfiles (`~/.cache/wal`,
-  `~/.config/wallust`), which the `home` interface does not expose. Only the
-  built-in palettes and artwork-derived colors work in the Snap.
-- **Memory-pressure telemetry:** WebKit's `PressureMonitor` cannot read
-  `/proc/zoneinfo` or the Snap's cgroup `memory.current` under strict
-  confinement, so AppArmor logs repeated denials. Playback and the UI are
-  unaffected. No broad `system-observe` plug is added for this optional signal.
-
-## Credits
-
-- [Limusic](https://github.com/SimoHypers/limusic) by SimoHypers, licensed
-  GPL-3.0.
-- Snap packaging maintained in
-  [NetNexusOrg/limusic-snap](https://github.com/NetNexusOrg/limusic-snap).
-- The GNOME Snapcraft extension provides the GTK 3 / WebKitGTK 4.1 runtime.
-- libmpv is staged from Ubuntu 24.04 (`libmpv2` 0.37).
-
-Report packaging issues at
-<https://github.com/NetNexusOrg/limusic-snap/issues>. Report upstream
-application bugs at <https://github.com/SimoHypers/limusic/issues>.
+- Upstream: [SimoHypers/limusic](https://github.com/SimoHypers/limusic)
+- Releases: [NetNexusOrg/limusic-snap](https://github.com/NetNexusOrg/limusic-snap/releases)
+- Packaging issues: [NetNexusOrg/limusic-snap/issues](https://github.com/NetNexusOrg/limusic-snap/issues)
+- Upstream bugs: [SimoHypers/limusic/issues](https://github.com/SimoHypers/limusic/issues)
+- License: GPL-3.0, see [LICENSE](LICENSE). Limusic is by SimoHypers; this
+  packaging is maintained by NetNexusOrg.
+- Screenshots are from the upstream project.

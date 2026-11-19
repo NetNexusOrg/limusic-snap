@@ -244,6 +244,8 @@ snap/local/lastfm.keys.example
 snap/local/icon.png
 .gitignore
 README.md
+docs/packaging.md
+docs/screenshots/*.webp
 ```
 
 `contact` and `issues` use `https://github.com/NetNexusOrg/limusic-snap`;

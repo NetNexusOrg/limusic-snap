@@ -97,8 +97,10 @@
 
 ## 6. Documentation and follow-ups
 
-- [x] 6.1 Finish `README.md`: prerequisites, build with LXD/Multipass, local
-  install, Last.fm keys, limitations, credits, and links.
+- [x] 6.1 Finish the documentation: a short `README.md` with install steps,
+  screenshots, limitations and links, plus `docs/packaging.md` with
+  prerequisites, build with LXD/Multipass, local install, Last.fm keys,
+  interfaces, full limitations, credits and links.
 - [x] 6.2 Document that updates come from snapd and that the Tauri updater is
   disabled in the Snap.
 - [x] 6.3 Document the Snap Store follow-up separately: register the `limusic`
