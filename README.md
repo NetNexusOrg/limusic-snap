@@ -70,6 +70,9 @@ The result is `limusic_1.4.0-1_amd64.snap`. Build options, Last.fm credentials,
 CI, interfaces and publishing are documented in
 [docs/packaging.md](docs/packaging.md).
 
+New upstream releases are detected daily and published automatically; see
+[Automation](docs/packaging.md#automation).
+
 ## Links and credits
 
 - Upstream: [SimoHypers/limusic](https://github.com/SimoHypers/limusic)

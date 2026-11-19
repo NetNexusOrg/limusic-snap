@@ -9,14 +9,28 @@ on:
   pull_request:
     paths:
       - "snap/**"
+      - "scripts/**"
       - ".github/workflows/build-snap.yml"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      upstream_tag:
+        description: Upstream tag to bump to before building (for example v1.5.0)
+        required: false
+        type: string
+    outputs:
+      snap:
+        description: File name of the built snap
+        value: ${{ jobs.build.outputs.snap }}
+      version:
+        description: Packaging version that was built
+        value: ${{ jobs.build.outputs.version }}
 
 permissions:
   contents: read
 
 concurrency:
-  group: snap-${{ github.ref }}
+  group: snap-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -24,9 +38,18 @@ jobs:
     name: Build and lint
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    outputs:
+      snap: ${{ steps.package.outputs.snap }}
+      version: ${{ steps.package.outputs.version }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
+
+      - name: Apply the upstream bump
+        if: inputs.upstream_tag != ''
+        env:
+          UPSTREAM_TAG: ${{ inputs.upstream_tag }}
+        run: ./scripts/bump-upstream.sh "$UPSTREAM_TAG"
 
       - name: Set up LXD
         uses: canonical/setup-lxd@v1
@@ -59,10 +82,14 @@ jobs:
           snapcraft lint "$snap"
 
       - name: Generate checksum
+        id: package
         run: |
           snap=$(ls limusic_*.snap | head -n1)
           sha256sum "$snap" > "$snap.sha256"
           cat "$snap.sha256"
+          version=$(sed -n 's/^version: "\(.*\)"$/\1/p' snap/snapcraft.yaml | head -n1)
+          echo "snap=$snap" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Upload snap and checksum
         uses: actions/upload-artifact@v4

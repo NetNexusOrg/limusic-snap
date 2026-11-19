@@ -1,0 +1,172 @@
+name: Upstream release
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Upstream tag to release (defaults to the latest stable release)
+        required: false
+        type: string
+      force:
+        description: Release even if this version already has a release
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: upstream-release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check upstream
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.resolve.outputs.tag }}
+      release_tag: ${{ steps.resolve.outputs.release_tag }}
+      skip: ${{ steps.resolve.outputs.skip }}
+    steps:
+      - name: Resolve the upstream tag
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG}" ]; then
+            tag="$INPUT_TAG"
+          else
+            tag=$(gh api repos/SimoHypers/limusic/releases/latest --jq .tag_name)
+          fi
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$tag' is not a stable vX.Y.Z upstream tag"
+            exit 1
+          fi
+          gh api "repos/SimoHypers/limusic/git/ref/tags/$tag" >/dev/null
+          version="${tag#v}"
+          release_tag="v${version}-1"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+          if [ "${FORCE}" != "true" ] && gh release view "$release_tag" \
+              --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "$release_tag already exists; nothing to do."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Will build and release $release_tag from upstream $tag."
+          fi
+
+  build:
+    name: Build
+    needs: check
+    if: needs.check.outputs.skip != 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build-snap.yml
+    with:
+      upstream_tag: ${{ needs.check.outputs.tag }}
+    secrets: inherit
+
+  release:
+    name: Publish
+    needs: [check, build]
+    if: needs.check.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Apply the upstream bump
+        run: ./scripts/bump-upstream.sh "${{ needs.check.outputs.tag }}"
+
+      - name: Commit the bump
+        run: |
+          if git diff --quiet; then
+            echo "Already committed; nothing to push."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update to upstream ${{ needs.check.outputs.tag }} [skip ci]"
+          git push
+
+      - name: Download the snap
+        uses: actions/download-artifact@v4
+        with:
+          name: limusic-snap
+
+      - name: Render the release notes
+        env:
+          RELEASE_TAG: ${{ needs.check.outputs.release_tag }}
+          UPSTREAM_TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          set -euo pipefail
+          snap=$(ls limusic_*.snap | head -n1)
+          sha=$(cut -d' ' -f1 "$snap.sha256")
+          version="${RELEASE_TAG#v}"
+          sed \
+            -e "s|{{VERSION}}|$version|g" \
+            -e "s|{{UPSTREAM_TAG}}|$UPSTREAM_TAG|g" \
+            -e "s|{{SHA256}}|$sha|g" \
+            docs/release-notes-template.md > notes.md
+          cat notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.check.outputs.release_tag }}
+        run: |
+          set -euo pipefail
+          snap=$(ls limusic_*.snap | head -n1)
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target main \
+            --title "Limusic ${RELEASE_TAG#v} — unofficial Snap" \
+            --notes-file notes.md \
+            "$snap" "$snap.sha256"
+
+  notify-failure:
+    name: Report the failure
+    needs: [check, build, release]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or update an issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.check.outputs.tag }}
+          RELEASE_TAG: ${{ needs.check.outputs.release_tag }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          tag="${TAG:-unknown}"
+          release_tag="${RELEASE_TAG:-unknown}"
+          title="Upstream release failed for $tag"
+          body=$(cat <<TEXT
+          The automatic release for upstream \`$tag\` (\`$release_tag\`) failed.
+
+          Run: $RUN_URL
+
+          Common causes:
+          - the upstream tag exists but does not build with the current Snapcraft recipe;
+          - \`snap/local/disable-updater.patch\` no longer applies to the new upstream tree;
+          - a build, lint or network failure inside the LXD container.
+
+          Re-run the workflow manually with the same tag after fixing the cause.
+          TEXT
+          )
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+          fi

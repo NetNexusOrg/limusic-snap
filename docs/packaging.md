@@ -201,6 +201,40 @@ If the `limusic` name is unavailable, choose a store name and update `name`,
 the desktop `Exec=`, and the documentation together. Automated CI builds are
 provided by `.github/workflows/build-snap.yml`; see the CI section above.
 
+## Automation
+
+`.github/workflows/upstream-release.yml` checks `SimoHypers/limusic` every day
+at 06:00 UTC for the latest stable release. When a version has no release here
+yet, it:
+
+1. bumps the packaging with `scripts/bump-upstream.sh <upstream-tag>`;
+2. builds the Snap through the reusable `build-snap.yml` workflow, with the same
+   Last.fm secrets;
+3. commits the bump to `main` with `[skip ci]`;
+4. creates a public GitHub release `v<upstream>-1` with the snap and checksum.
+
+The Snap version stays `<upstream>-1`; the `-1` is the packaging revision for
+that upstream release. Prereleases are ignored automatically because the
+workflow reads the upstream `releases/latest`.
+
+To release a specific tag, or to retry a failed version:
+
+```bash
+gh workflow run upstream-release.yml -f tag=v1.5.0
+gh workflow run upstream-release.yml -f tag=v1.5.0 -f force=true
+```
+
+If any step fails, the workflow opens or comments on an issue titled
+`Upstream release failed for <tag>` instead of publishing a partial release.
+
+Running the bump locally is the same command:
+
+```bash
+./scripts/bump-upstream.sh v1.5.0
+```
+
+Nothing is published to the Snap Store automatically.
+
 ## Credits
 
 - [Limusic](https://github.com/SimoHypers/limusic) by SimoHypers, licensed
