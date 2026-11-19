@@ -30,3 +30,7 @@ Thumbs.db
 .idea/
 .vscode/
 *~
+
+# Local planning and agent tooling
+.opencode/
+openspec/
