@@ -22,10 +22,10 @@ desktop YouTube Music client built with Tauri, Rust and SvelteKit.
 ## Install
 
 ```bash
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-2/limusic_1.4.1-2_amd64.snap
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-2/limusic_1.4.1-2_amd64.snap.sha256
-sha256sum -c limusic_1.4.1-2_amd64.snap.sha256
-sudo snap install --dangerous ./limusic_1.4.1-2_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-3/limusic_1.4.1-3_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-3/limusic_1.4.1-3_amd64.snap.sha256
+sha256sum -c limusic_1.4.1-3_amd64.snap.sha256
+sudo snap install --dangerous ./limusic_1.4.1-3_amd64.snap
 ```
 
 Music on external drives needs a one-time connection:
@@ -43,6 +43,7 @@ Ubuntu 24.04 or newer on `amd64`. The app appears in the desktop menu, or run
 - Local music from your home directory.
 - Audio playback through libmpv, with MPRIS media keys and a tray icon.
 - Synced lyrics, artwork-based colors and music videos, including H.264/AAC.
+- European Portuguese (`pt-PT`) and Brazilian Portuguese in the language picker.
 - Last.fm scrobbling, with the API credentials built in.
 - A single running instance, so links open in the window you already have.
 - Updates through snapd, not the in-app updater.
@@ -65,7 +66,7 @@ sudo snap install lxd && lxd init --minimal
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.1-2_amd64.snap`. Build options, Last.fm credentials,
+The result is `limusic_1.4.1-3_amd64.snap`. Build options, Last.fm credentials,
 CI, interfaces and publishing are documented in
 [docs/packaging.md](docs/packaging.md).
 
