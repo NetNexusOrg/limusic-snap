@@ -29,8 +29,10 @@ SHA-256:
 - GTK 3 / WebKitGTK 4.1 through the GNOME extension.
 - libmpv from Ubuntu 24.04, with the BLAS/LAPACK runtime symlinks that
   libsphinxbase needs.
+- GStreamer `libav` plugin staged into the Snap, so H.264/AAC music videos play.
 - Last.fm API credentials compiled into the binary.
-- MPRIS/media keys, tray, local music, audio playback and Google login.
+- MPRIS/media keys, tray, single instance, local music, audio playback and
+  Google login.
 - Strict confinement with only the documented interfaces.
 
 ## Updates
@@ -45,11 +47,8 @@ disabled in this build.
   deb/AppImage if you need RPC.
 - **Start on login** is unsupported because a strict snap cannot write the
   host's `~/.config/autostart`.
-- **Single instance** is disabled (`LIMUSIC_MULTI=1`); multiple instances can run.
 - **Removable media** requires a one-time manual connection:
   `sudo snap connect limusic:removable-media`.
-- **H.264/AAC-only video** may not play because the GNOME content snap does not
-  include `libgstlibav`; audio is unaffected.
 - **wallust / pywal** palettes cannot read host dotfiles; only the built-in and
   artwork-derived palettes work.
 

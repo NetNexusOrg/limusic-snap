@@ -36,7 +36,12 @@ if [ "$current" = "$base" ]; then
   exit 0
 fi
 
-old_pkg="${current}-1"
+# The packaging revision can be higher than -1 (for example 1.4.1-2 after a
+# packaging-only fix), so read it from the recipe instead of assuming -1.
+old_pkg=$(sed -n 's/^version:[[:space:]]*"\([^"]*\)"[[:space:]]*$/\1/p' snap/snapcraft.yaml | head -n1)
+if [ -z "$old_pkg" ]; then
+  old_pkg="${current}-1"
+fi
 new_pkg="${base}-1"
 today=$(date -u +%F)
 

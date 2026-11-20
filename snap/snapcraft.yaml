@@ -1,7 +1,7 @@
 name: limusic
 title: Limusic
 base: core24
-version: "1.4.1-1"
+version: "1.4.1-2"
 grade: stable
 confinement: strict
 license: GPL-3.0-only
@@ -36,8 +36,6 @@ apps:
     command: bin/limusic-app
     desktop: usr/share/applications/limusic.desktop
     common-id: limusic
-    environment:
-      LIMUSIC_MULTI: "1"
     plugs:
       - network
       - network-bind
@@ -50,11 +48,18 @@ apps:
       - removable-media
     slots:
       - mpris
+      - single-instance
 
 slots:
   mpris:
     interface: mpris
     name: limusic
+  # The Tauri single-instance plugin owns this D-Bus name, derived from the
+  # upstream app identifier com.limusic.desktop.
+  single-instance:
+    interface: dbus
+    bus: session
+    name: com.limusic.desktop.SingleInstance
 
 parts:
   limusic:
@@ -74,6 +79,11 @@ parts:
       - libdbus-1-dev
     stage-packages:
       - libmpv2
+      # WebKitGTK plays music videos with GStreamer. The GNOME content snap
+      # ships the base plugins but not libgstlibav, so H.264/AAC streams fail
+      # without this. desktop-launch adds $SNAP/usr/lib/$ARCH/gstreamer-1.0 to
+      # GST_PLUGIN_PATH, so the staged plugin is picked up automatically.
+      - gstreamer1.0-libav
       # libsphinxbase3 (pulled in by libmpv2) links against BLAS/LAPACK, but
       # Snapcraft's dependency resolver does not stage the virtual providers.
       - libblas3

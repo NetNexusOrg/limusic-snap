@@ -27,7 +27,7 @@ From the repository root:
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.1-1_amd64.snap`.
+The result is `limusic_1.4.1-2_amd64.snap`.
 
 Building on the host with `--destructive-mode` is possible but only recommended
 on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
@@ -44,10 +44,16 @@ features. No metadata, desktop-entry or confinement warnings are reported.
 the libraries under `blas/` and `lapack/` and rely on `update-alternatives` for
 the top-level soname symlinks, so the snap build creates those symlinks itself.
 
+`gstreamer1.0-libav` is staged because the GNOME content snap ships the base
+GStreamer plugins but not `libgstlibav`, which WebKitGTK needs for H.264/AAC
+music videos. The GNOME `desktop-launch` adds `$SNAP/usr/lib/$ARCH/gstreamer-1.0`
+to `GST_PLUGIN_PATH`, so the staged plugin is loaded automatically. It is built
+against the same GStreamer 1.24 that `gnome-46-2404` provides.
+
 ## Install a local build
 
 ```bash
-sudo snap install --dangerous ./limusic_1.4.1-1_amd64.snap
+sudo snap install --dangerous ./limusic_1.4.1-2_amd64.snap
 sudo snap connect limusic:removable-media   # only for external drives
 ```
 
@@ -108,6 +114,11 @@ The Snap declares the minimum needed for its documented behavior:
   auto-connect this interface for public snaps; connect it manually with
   `sudo snap connect limusic:removable-media` only when needed.
 - `mpris` slot — owns `org.mpris.MediaPlayer2.limusic` for media keys/widgets.
+- `single-instance` slot — session D-Bus name
+  `com.limusic.desktop.SingleInstance`, owned by the Tauri single-instance
+  plugin. A second launch hands its arguments to the running window instead of
+  starting a new process. Publishing the Snap requires store approval for this
+  name.
 
 Desktop, display, GPU and settings interfaces come from the GNOME extension.
 
@@ -116,17 +127,11 @@ Desktop, display, GPU and settings interfaces come from the GNOME extension.
 - **Discord Rich Presence:** the host Discord IPC socket is outside the Snap's
   private runtime directory, and snapd has no interface for it. Rich Presence is
   unavailable; use the upstream `.deb` or AppImage if you need it.
-- **Single instance:** the Tauri single-instance plugin cannot own its D-Bus
-  name under strict confinement. The Snap sets `LIMUSIC_MULTI=1` to skip the
-  plugin; two instances can run at the same time.
 - **Start on login:** the Tauri autostart plugin writes inside the Snap's
   private home, not the host's `~/.config/autostart`. The host desktop will not
   read it.
 - **Global shortcuts:** X11 works through the `x11` interface. On Wayland the
   desktop portal may ask for approval, so treat global shortcuts as best-effort.
-- **Video codecs:** the GNOME content snap includes VP8/VP9/Opus and Matroska
-  GStreamer plugins but not `libgstlibav`. H.264/AAC-only music videos may not
-  play. Audio playback is unaffected because it uses libmpv.
 - **Karaoke:** the vocal-removal models download into the Snap's private data
   directory, which works, but GPU acceleration is best-effort. It depends on
   Vulkan/DRM access provided by the GNOME extension and has not been validated
@@ -163,7 +168,7 @@ Useful diagnostics:
 snap connections limusic
 sudo snap install snappy-debug
 snappy-debug
-snapcraft lint ./limusic_1.4.1-1_amd64.snap
+snapcraft lint ./limusic_1.4.1-2_amd64.snap
 ```
 
 ## Updates
@@ -181,25 +186,39 @@ For a local build, rebuild and reinstall with `--dangerous`.
 ## Publishing to the Snap Store
 
 Publishing is a separate step and is not required to build or test the Snap.
-The store name `limusic` must be registered and owned by the publisher before
-the first upload:
+**The store name `limusic` is already registered by another publisher**
+(`sidaliteir`, maintainer of `sidalit/limusic-snap`), so this project cannot
+claim it; an upload under that name would be rejected.
+
+The options are:
+
+1. **Publish under a different name**, for example `limusic-community`. That
+   requires changing `name` in `snap/snapcraft.yaml`, the `Exec=` line in
+   `snap/local/limusic.desktop`, and every command in this documentation, then
+   registering the new name:
+
+   ```bash
+   snapcraft register limusic-community
+   snapcraft upload --release=edge ./limusic_1.4.1-2_amd64.snap
+   ```
+
+2. **Ask the current owner to transfer the name** or to invite this account as
+   a collaborator. Only the owner can do that.
+
+3. **Keep distributing through GitHub Releases** with
+   `snap install --dangerous`, as today. Updates are then manual: download the
+   new snap and reinstall it.
+
+The `single-instance` D-Bus slot also needs store approval if the Snap is
+published, because it claims a name in the `com.limusic.desktop` namespace.
+
+Install a published edge build on a test machine, run the checklist above, then
+promote the tested revision:
 
 ```bash
-snapcraft register limusic
-snapcraft upload --release=edge ./limusic_1.4.1-1_amd64.snap
+sudo snap install <store-name> --edge
+snapcraft release <store-name> <revision> stable
 ```
-
-Install the published edge build on a test machine, run the checklist above,
-then promote the tested revision:
-
-```bash
-sudo snap install limusic --edge
-snapcraft release limusic <revision> stable
-```
-
-If the `limusic` name is unavailable, choose a store name and update `name`,
-the desktop `Exec=`, and the documentation together. Automated CI builds are
-provided by `.github/workflows/build-snap.yml`; see the CI section above.
 
 ## Automation
 

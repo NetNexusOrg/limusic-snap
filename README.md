@@ -22,10 +22,10 @@ desktop YouTube Music client built with Tauri, Rust and SvelteKit.
 ## Install
 
 ```bash
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-1/limusic_1.4.1-1_amd64.snap
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-1/limusic_1.4.1-1_amd64.snap.sha256
-sha256sum -c limusic_1.4.1-1_amd64.snap.sha256
-sudo snap install --dangerous ./limusic_1.4.1-1_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-2/limusic_1.4.1-2_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-2/limusic_1.4.1-2_amd64.snap.sha256
+sha256sum -c limusic_1.4.1-2_amd64.snap.sha256
+sudo snap install --dangerous ./limusic_1.4.1-2_amd64.snap
 ```
 
 Music on external drives needs a one-time connection:
@@ -42,16 +42,15 @@ Ubuntu 24.04 or newer on `amd64`. The app appears in the desktop menu, or run
 - YouTube Music streaming and Google login.
 - Local music from your home directory.
 - Audio playback through libmpv, with MPRIS media keys and a tray icon.
-- Synced lyrics, artwork-based colors and music videos.
+- Synced lyrics, artwork-based colors and music videos, including H.264/AAC.
 - Last.fm scrobbling, with the API credentials built in.
+- A single running instance, so links open in the window you already have.
 - Updates through snapd, not the in-app updater.
 
 ## Known limitations
 
 - **Discord Rich Presence** — snapd has no interface for the host Discord socket.
-- **Single instance** — disabled, so more than one window can run.
 - **Start on login** — a strict Snap cannot write the host autostart file.
-- **H.264/AAC video** — may not play; audio is unaffected.
 - **Karaoke** — CPU always works, GPU acceleration is best-effort.
 - **wallust/pywal** — reads host dotfiles the `home` interface does not expose.
 
@@ -66,7 +65,7 @@ sudo snap install lxd && lxd init --minimal
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.1-1_amd64.snap`. Build options, Last.fm credentials,
+The result is `limusic_1.4.1-2_amd64.snap`. Build options, Last.fm credentials,
 CI, interfaces and publishing are documented in
 [docs/packaging.md](docs/packaging.md).
 
