@@ -22,10 +22,10 @@ desktop YouTube Music client built with Tauri, Rust and SvelteKit.
 ## Install
 
 ```bash
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.0-1/limusic_1.4.0-1_amd64.snap
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.0-1/limusic_1.4.0-1_amd64.snap.sha256
-sha256sum -c limusic_1.4.0-1_amd64.snap.sha256
-sudo snap install --dangerous ./limusic_1.4.0-1_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-1/limusic_1.4.1-1_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-1/limusic_1.4.1-1_amd64.snap.sha256
+sha256sum -c limusic_1.4.1-1_amd64.snap.sha256
+sudo snap install --dangerous ./limusic_1.4.1-1_amd64.snap
 ```
 
 Music on external drives needs a one-time connection:
@@ -66,7 +66,7 @@ sudo snap install lxd && lxd init --minimal
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.0-1_amd64.snap`. Build options, Last.fm credentials,
+The result is `limusic_1.4.1-1_amd64.snap`. Build options, Last.fm credentials,
 CI, interfaces and publishing are documented in
 [docs/packaging.md](docs/packaging.md).
 

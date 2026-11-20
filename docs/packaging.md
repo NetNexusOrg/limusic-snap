@@ -4,7 +4,7 @@ Technical documentation for the unofficial Limusic Snap. For installation, see
 the [README](../README.md).
 
 This repository is packaging-only. It does not vendor or fork the upstream
-source; the build fetches the upstream `v1.4.0` tag from Git.
+source; the build fetches the upstream `v1.4.1` tag from Git.
 
 ## Requirements
 
@@ -27,7 +27,7 @@ From the repository root:
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.0-1_amd64.snap`.
+The result is `limusic_1.4.1-1_amd64.snap`.
 
 Building on the host with `--destructive-mode` is possible but only recommended
 on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
@@ -47,7 +47,7 @@ the top-level soname symlinks, so the snap build creates those symlinks itself.
 ## Install a local build
 
 ```bash
-sudo snap install --dangerous ./limusic_1.4.0-1_amd64.snap
+sudo snap install --dangerous ./limusic_1.4.1-1_amd64.snap
 sudo snap connect limusic:removable-media   # only for external drives
 ```
 
@@ -163,7 +163,7 @@ Useful diagnostics:
 snap connections limusic
 sudo snap install snappy-debug
 snappy-debug
-snapcraft lint ./limusic_1.4.0-1_amd64.snap
+snapcraft lint ./limusic_1.4.1-1_amd64.snap
 ```
 
 ## Updates
@@ -186,7 +186,7 @@ the first upload:
 
 ```bash
 snapcraft register limusic
-snapcraft upload --release=edge ./limusic_1.4.0-1_amd64.snap
+snapcraft upload --release=edge ./limusic_1.4.1-1_amd64.snap
 ```
 
 Install the published edge build on a test machine, run the checklist above,

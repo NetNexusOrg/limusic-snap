@@ -1,7 +1,7 @@
 name: limusic
 title: Limusic
 base: core24
-version: "1.4.0-1"
+version: "1.4.1-1"
 grade: stable
 confinement: strict
 license: GPL-3.0-only
@@ -22,7 +22,7 @@ description: |
   SimoHypers at https://github.com/SimoHypers/limusic and is licensed under
   GPL-3.0.
 
-  The Snap builds upstream v1.4.0 and uses the system libmpv for playback.
+  The Snap builds upstream v1.4.1 and uses the system libmpv for playback.
   Updates are delivered by snapd; the in-app Tauri updater is disabled in
   this build.
 
@@ -60,7 +60,7 @@ parts:
   limusic:
     plugin: nil
     source: https://github.com/SimoHypers/limusic.git
-    source-tag: v1.4.0
+    source-tag: v1.4.1
     build-snaps:
       - node/22/stable
     build-packages:
