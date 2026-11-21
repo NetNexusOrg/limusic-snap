@@ -27,7 +27,7 @@ From the repository root:
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.1-3_amd64.snap`.
+The result is `limusic_1.4.1-4_amd64.snap`.
 
 Building on the host with `--destructive-mode` is possible but only recommended
 on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
@@ -50,27 +50,20 @@ music videos. The GNOME `desktop-launch` adds `$SNAP/usr/lib/$ARCH/gstreamer-1.0
 to `GST_PLUGIN_PATH`, so the staged plugin is loaded automatically. It is built
 against the same GStreamer 1.24 that `gnome-46-2404` provides.
 
-Two patches are applied in `override-pull`, both with `git apply --check` and a
-hard failure if they stop applying:
+One patch is applied in `override-pull` with `git apply --check` and a hard
+failure if it stops applying: `snap/local/disable-updater.patch` turns the
+in-app Tauri updater off, so a strict Snap never offers to replace its own
+files.
 
-- `snap/local/disable-updater.patch` turns the in-app Tauri updater off, so a
-  strict Snap never offers to replace its own files.
-- `snap/local/pt-pt-locale.patch` registers the `pt.json` catalog that upstream
-  already ships but never imports. Upstream's picker only lists `pt-BR`, so a
-  Portuguese browser falls back to Brazilian Portuguese. The patch adds `pt-PT`
-  (the id goes to YouTube as `hl`, and `hl=pt` answers with Brazilian
-  Portuguese) and lists it before `pt-BR`, which makes `pt-AO` and `pt-MZ` land
-  on the European catalog too. Remove the patch once upstream wires the locale
-  itself; the build fails loudly if it stops applying, so this cannot be
-  forgotten silently.
-
-After `pnpm build`, the recipe greps `ui/build` for `Portuguese (Portugal)` and
-`pt-PT` and fails the build if the locale did not reach the frontend bundle.
+European Portuguese (`pt-PT`) is not patched in any more. Upstream added it to
+the language picker in 1.5.0; builds pinned to 1.4.1 therefore show Brazilian
+Portuguese only, and the picker gains `Português (Portugal)` as soon as the
+`source-tag` moves to 1.5.0 or newer.
 
 ## Install a local build
 
 ```bash
-sudo snap install --dangerous ./limusic_1.4.1-3_amd64.snap
+sudo snap install --dangerous ./limusic_1.4.1-4_amd64.snap
 sudo snap connect limusic:removable-media   # only for external drives
 ```
 
@@ -185,7 +178,7 @@ Useful diagnostics:
 snap connections limusic
 sudo snap install snappy-debug
 snappy-debug
-snapcraft lint ./limusic_1.4.1-3_amd64.snap
+snapcraft lint ./limusic_1.4.1-4_amd64.snap
 ```
 
 ## Updates
@@ -216,7 +209,7 @@ The options are:
 
    ```bash
    snapcraft register limusic-community
-   snapcraft upload --release=edge ./limusic_1.4.1-3_amd64.snap
+   snapcraft upload --release=edge ./limusic_1.4.1-4_amd64.snap
    ```
 
 2. **Ask the current owner to transfer the name** or to invite this account as

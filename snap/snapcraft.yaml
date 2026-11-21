@@ -1,7 +1,7 @@
 name: limusic
 title: Limusic
 base: core24
-version: "1.4.1-3"
+version: "1.4.1-4"
 grade: stable
 confinement: strict
 license: GPL-3.0-only
@@ -92,7 +92,7 @@ parts:
       set -eux
       craftctl default
       cd "$CRAFT_PART_SRC"
-      for patch in disable-updater.patch pt-pt-locale.patch; do
+      for patch in disable-updater.patch; do
         path="$CRAFT_PROJECT_DIR/snap/local/$patch"
         if git apply --check "$path"; then
           git apply "$path"
@@ -138,14 +138,6 @@ parts:
       cd ui
       pnpm install --frozen-lockfile
       pnpm build
-      # The pt-PT patch only matters if it reaches the built frontend. esbuild
-      # escapes non-ASCII, so look for ASCII-only strings from the locale entry.
-      for needle in "Portuguese (Portugal)" "pt-PT"; do
-        if ! grep -rqs -- "$needle" build; then
-          echo "pt-PT locale missing from ui/build ($needle)" >&2
-          exit 1
-        fi
-      done
       cd ..
 
       tauri build --no-bundle --config '{"build":{"beforeBuildCommand":""}}'

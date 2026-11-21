@@ -31,8 +31,6 @@ SHA-256:
   libsphinxbase needs.
 - GStreamer `libav` plugin staged into the Snap, so H.264/AAC music videos play.
 - Last.fm API credentials compiled into the binary.
-- European Portuguese (`pt-PT`) in the language picker, alongside Brazilian
-  Portuguese.
 - MPRIS/media keys, tray, single instance, local music, audio playback and
   Google login.
 - Strict confinement with only the documented interfaces.
