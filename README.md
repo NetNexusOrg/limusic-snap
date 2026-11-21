@@ -22,20 +22,33 @@ desktop YouTube Music client built with Tauri, Rust and SvelteKit.
 ## Install
 
 ```bash
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-4/limusic_1.4.1-4_amd64.snap
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-4/limusic_1.4.1-4_amd64.snap.sha256
-sha256sum -c limusic_1.4.1-4_amd64.snap.sha256
-sudo snap install --dangerous ./limusic_1.4.1-4_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-4/limusic-community_1.4.1-4_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-4/limusic-community_1.4.1-4_amd64.snap.sha256
+sha256sum -c limusic-community_1.4.1-4_amd64.snap.sha256
+sudo snap install --dangerous ./limusic-community_1.4.1-4_amd64.snap
 ```
 
 Music on external drives needs a one-time connection:
 
 ```bash
-sudo snap connect limusic:removable-media
+sudo snap connect limusic-community:removable-media
 ```
 
 Ubuntu 24.04 or newer on `amd64`. The app appears in the desktop menu, or run
-`limusic` in a terminal.
+`limusic-community` in a terminal.
+
+## Release channels
+
+| Channel | Upstream source | Version |
+| --- | --- | --- |
+| `stable` | latest stable release | `1.4.1-4` |
+| `candidate` | latest release candidate | `<version>-<revision>` |
+| `beta` | `dev` branch | `git-dev-<sha>` |
+| `edge` | `master` branch | `git-<sha>` |
+
+The Snap Store name `limusic` belongs to another publisher, so this project is
+registered as `limusic-community`. Store publishing is prepared but disabled;
+installations here come from GitHub Releases, one release per channel.
 
 ## What works
 
@@ -65,7 +78,7 @@ sudo snap install lxd && lxd init --minimal
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.1-4_amd64.snap`. Build options, Last.fm credentials,
+The result is `limusic-community_1.4.1-4_amd64.snap`. Build options, Last.fm credentials,
 CI, interfaces and publishing are documented in
 [docs/packaging.md](docs/packaging.md).
 

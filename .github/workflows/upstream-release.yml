@@ -5,12 +5,19 @@ on:
     - cron: "0 6 * * *"
   workflow_dispatch:
     inputs:
-      tag:
-        description: Upstream tag to release (defaults to the latest stable release)
+      channel:
+        description: Channel to build
         required: false
-        type: string
+        type: choice
+        options:
+          - all
+          - stable
+          - candidate
+          - beta
+          - edge
+        default: all
       force:
-        description: Release even if this version already has a release
+        description: Release even if this build already has a release
         required: false
         type: boolean
         default: false
@@ -24,69 +31,116 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  check:
-    name: Check upstream
+  plan:
+    name: Plan
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.resolve.outputs.tag }}
-      release_tag: ${{ steps.resolve.outputs.release_tag }}
-      skip: ${{ steps.resolve.outputs.skip }}
+      builds: ${{ steps.plan.outputs.builds }}
+      empty: ${{ steps.plan.outputs.empty }}
     steps:
-      - name: Resolve the upstream tag
-        id: resolve
+      - name: Decide which channels need a build
+        id: plan
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          INPUT_TAG: ${{ inputs.tag }}
+          INPUT_CHANNEL: ${{ inputs.channel }}
           FORCE: ${{ inputs.force }}
         run: |
-          set -euo pipefail
-          if [ -n "${INPUT_TAG}" ]; then
-            tag="$INPUT_TAG"
-          else
-            tag=$(gh api repos/SimoHypers/limusic/releases/latest --jq .tag_name)
-          fi
-          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::'$tag' is not a stable vX.Y.Z upstream tag"
-            exit 1
-          fi
-          gh api "repos/SimoHypers/limusic/git/ref/tags/$tag" >/dev/null
-          version="${tag#v}"
-          release_tag="v${version}-1"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
-          if [ "${FORCE}" != "true" ] && gh release view "$release_tag" \
-              --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "$release_tag already exists; nothing to do."
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "Will build and release $release_tag from upstream $tag."
-          fi
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          wanted = os.environ.get("INPUT_CHANNEL") or "all"
+          force = os.environ.get("FORCE") == "true"
+
+          def gh(*args):
+              out = subprocess.run(["gh", *args], capture_output=True, text=True)
+              if out.returncode != 0:
+                  raise SystemExit(f"gh {' '.join(args)} failed: {out.stderr.strip()}")
+              return out.stdout.strip()
+
+          def has_release(tag):
+              out = subprocess.run(
+                  ["gh", "release", "view", tag, "--repo", repo],
+                  capture_output=True, text=True)
+              return out.returncode == 0
+
+          channels = ["stable", "candidate", "beta", "edge"] if wanted == "all" else [wanted]
+          releases = json.loads(gh("api", "repos/SimoHypers/limusic/releases?per_page=30"))
+          builds = []
+
+          for channel in channels:
+              if channel == "stable":
+                  tag = gh("api", "repos/SimoHypers/limusic/releases/latest", "--jq", ".tag_name")
+                  version = tag[1:]
+                  entry = {"channel": channel, "kind": "tag", "ref": tag,
+                           "release_tag": f"v{version}-1", "version": f"{version}-1"}
+              elif channel == "candidate":
+                  prereleases = [r["tag_name"] for r in releases if r.get("prerelease")]
+                  if not prereleases:
+                      print("candidate: no upstream prerelease yet; skipping")
+                      continue
+                  tag = prereleases[0]
+                  version = tag[1:]
+                  entry = {"channel": channel, "kind": "tag", "ref": tag,
+                           "release_tag": f"v{version}-1", "version": f"{version}-1"}
+              else:
+                  branch = "dev" if channel == "beta" else "master"
+                  sha = gh("api", f"repos/SimoHypers/limusic/commits/{branch}", "--jq", ".sha")
+                  short = sha[:7]
+                  version = f"git-dev-{short}" if channel == "beta" else f"git-{short}"
+                  entry = {"channel": channel, "kind": "ref", "ref": branch,
+                           "release_tag": f"{channel}-{short}", "version": version}
+
+              if not force and has_release(entry["release_tag"]):
+                  print(f"{channel}: {entry['release_tag']} already exists; skipping")
+                  continue
+
+              builds.append(entry)
+              print(f"{channel}: will build {entry['release_tag']} from {entry['ref']}")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as out:
+              out.write(f"builds={json.dumps(builds)}\n")
+              out.write(f"empty={'true' if not builds else 'false'}\n")
+          PY
 
   build:
-    name: Build
-    needs: check
-    if: needs.check.outputs.skip != 'true'
+    name: Build ${{ matrix.channel }}
+    needs: plan
+    if: needs.plan.outputs.empty != 'true'
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.builds) }}
     uses: ./.github/workflows/build-snap.yml
     with:
-      upstream_tag: ${{ needs.check.outputs.tag }}
+      upstream_tag: ${{ matrix.kind == 'tag' && matrix.ref || '' }}
+      upstream_ref: ${{ matrix.kind == 'ref' && matrix.ref || '' }}
+      artifact_suffix: -${{ matrix.channel }}
     secrets: inherit
 
-  release:
-    name: Publish
-    needs: [check, build]
-    if: needs.check.outputs.skip != 'true'
+  publish:
+    name: Publish ${{ matrix.channel }}
+    needs: [plan, build]
+    if: needs.plan.outputs.empty != 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.builds) }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
 
-      - name: Apply the upstream bump
-        run: ./scripts/bump-upstream.sh "${{ needs.check.outputs.tag }}"
+      - name: Prepare the stable bump
+        if: matrix.channel == 'stable'
+        run: ./scripts/bump-upstream.sh "${{ matrix.ref }}"
 
-      - name: Commit the bump
+      - name: Commit the stable bump
+        if: matrix.channel == 'stable'
         run: |
           if git diff --quiet; then
             echo "Already committed; nothing to push."
@@ -95,72 +149,86 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Update to upstream ${{ needs.check.outputs.tag }} [skip ci]"
+          git commit -m "Update to upstream ${{ matrix.ref }} [skip ci]"
           git push
 
       - name: Download the snap
         uses: actions/download-artifact@v4
         with:
-          name: limusic-snap
+          name: limusic-community-snap-${{ matrix.channel }}
 
       - name: Render the release notes
         env:
-          RELEASE_TAG: ${{ needs.check.outputs.release_tag }}
-          UPSTREAM_TAG: ${{ needs.check.outputs.tag }}
+          RELEASE_TAG: ${{ matrix.release_tag }}
+          VERSION: ${{ matrix.version }}
+          UPSTREAM_TAG: ${{ matrix.kind == 'tag' && matrix.ref || format('{0} ({1})', matrix.ref, matrix.version) }}
+          CHANNEL: ${{ matrix.channel }}
         run: |
           set -euo pipefail
-          snap=$(ls limusic_*.snap | head -n1)
+          snap=$(ls limusic-community_*.snap | head -n1)
           sha=$(cut -d' ' -f1 "$snap.sha256")
-          version="${RELEASE_TAG#v}"
           sed \
-            -e "s|{{VERSION}}|$version|g" \
+            -e "s|{{VERSION}}|$VERSION|g" \
+            -e "s|{{RELEASE_TAG}}|$RELEASE_TAG|g" \
             -e "s|{{UPSTREAM_TAG}}|$UPSTREAM_TAG|g" \
             -e "s|{{SHA256}}|$sha|g" \
+            -e "s|{{CHANNEL}}|$CHANNEL|g" \
             docs/release-notes-template.md > notes.md
           cat notes.md
 
       - name: Create the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ needs.check.outputs.release_tag }}
+          RELEASE_TAG: ${{ matrix.release_tag }}
+          VERSION: ${{ matrix.version }}
         run: |
           set -euo pipefail
-          snap=$(ls limusic_*.snap | head -n1)
+          snap=$(ls limusic-community_*.snap | head -n1)
           gh release create "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
             --target main \
-            --title "Limusic ${RELEASE_TAG#v} — unofficial Snap" \
+            --title "Limusic $VERSION — unofficial Snap" \
             --notes-file notes.md \
             "$snap" "$snap.sha256"
 
+      - name: Publish to the Snap Store
+        if: vars.PUBLISH_TO_STORE == 'true'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          SNAP_CHANNEL: ${{ matrix.channel }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SNAPCRAFT_STORE_CREDENTIALS}" ]; then
+            echo "::error::SNAPCRAFT_STORE_CREDENTIALS is not set"
+            exit 1
+          fi
+          snap=$(ls limusic-community_*.snap | head -n1)
+          snapcraft upload --release="latest/$SNAP_CHANNEL" "$snap"
+
   notify-failure:
     name: Report the failure
-    needs: [check, build, release]
+    needs: [plan, build, publish]
     if: failure()
     runs-on: ubuntu-latest
     steps:
       - name: Open or update an issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.check.outputs.tag }}
-          RELEASE_TAG: ${{ needs.check.outputs.release_tag }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -euo pipefail
-          tag="${TAG:-unknown}"
-          release_tag="${RELEASE_TAG:-unknown}"
-          title="Upstream release failed for $tag"
+          title="Upstream release failed"
           body=$(cat <<TEXT
-          The automatic release for upstream \`$tag\` (\`$release_tag\`) failed.
+          An automatic channel build failed.
 
           Run: $RUN_URL
 
           Common causes:
-          - the upstream tag exists but does not build with the current Snapcraft recipe;
-          - \`snap/local/disable-updater.patch\` no longer applies to the new upstream tree;
+          - the upstream tag or branch does not build with the current recipe;
+          - \`snap/local/disable-updater.patch\` no longer applies to the new tree;
           - a build, lint or network failure inside the LXD container.
 
-          Re-run the workflow manually with the same tag after fixing the cause.
+          Re-run the workflow manually after fixing the cause.
           TEXT
           )
           number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \

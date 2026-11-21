@@ -1,4 +1,4 @@
-name: limusic
+name: limusic-community
 title: Limusic
 base: core24
 version: "1.4.1-4"
@@ -30,7 +30,7 @@ platforms:
   amd64:
 
 apps:
-  limusic:
+  limusic-community:
     extensions:
       - gnome
     command: bin/limusic-app

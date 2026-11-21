@@ -27,7 +27,7 @@ From the repository root:
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic_1.4.1-4_amd64.snap`.
+The result is `limusic-community_1.4.1-4_amd64.snap`.
 
 Building on the host with `--destructive-mode` is possible but only recommended
 on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
@@ -63,8 +63,8 @@ Portuguese only, and the picker gains `Português (Portugal)` as soon as the
 ## Install a local build
 
 ```bash
-sudo snap install --dangerous ./limusic_1.4.1-4_amd64.snap
-sudo snap connect limusic:removable-media   # only for external drives
+sudo snap install --dangerous ./limusic-community_1.4.1-4_amd64.snap
+sudo snap connect limusic-community:removable-media   # only for external drives
 ```
 
 ## Last.fm credentials
@@ -122,7 +122,7 @@ The Snap declares the minimum needed for its documented behavior:
 - `home` — local music in non-hidden home directories.
 - `removable-media` — local music on removable volumes. snapd does not
   auto-connect this interface for public snaps; connect it manually with
-  `sudo snap connect limusic:removable-media` only when needed.
+  `sudo snap connect limusic-community:removable-media` only when needed.
 - `mpris` slot — owns `org.mpris.MediaPlayer2.limusic` for media keys/widgets.
 - `single-instance` slot — session D-Bus name
   `com.limusic.desktop.SingleInstance`, owned by the Tauri single-instance
@@ -178,7 +178,7 @@ Useful diagnostics:
 snap connections limusic
 sudo snap install snappy-debug
 snappy-debug
-snapcraft lint ./limusic_1.4.1-4_amd64.snap
+snapcraft lint ./limusic-community_1.4.1-4_amd64.snap
 ```
 
 ## Updates
@@ -188,81 +188,77 @@ build with a build-time patch, so the app never tries to replace its own files.
 When the Snap is published, update it with:
 
 ```bash
-sudo snap refresh limusic
+sudo snap refresh limusic-community
 ```
 
 For a local build, rebuild and reinstall with `--dangerous`.
 
 ## Publishing to the Snap Store
 
-Publishing is a separate step and is not required to build or test the Snap.
-**The store name `limusic` is already registered by another publisher**
-(`sidaliteir`, maintainer of `sidalit/limusic-snap`), so this project cannot
-claim it; an upload under that name would be rejected.
+Publishing is prepared but **disabled**. The Snap is registered as
+`limusic-community`; the name `limusic` belongs to another publisher
+(`sidaliteir`, maintainer of `sidalit/limusic-snap`) and cannot be used.
 
-The options are:
-
-1. **Publish under a different name**, for example `limusic-community`. That
-   requires changing `name` in `snap/snapcraft.yaml`, the `Exec=` line in
-   `snap/local/limusic.desktop`, and every command in this documentation, then
-   registering the new name:
-
-   ```bash
-   snapcraft register limusic-community
-   snapcraft upload --release=edge ./limusic_1.4.1-4_amd64.snap
-   ```
-
-2. **Ask the current owner to transfer the name** or to invite this account as
-   a collaborator. Only the owner can do that.
-
-3. **Keep distributing through GitHub Releases** with
-   `snap install --dangerous`, as today. Updates are then manual: download the
-   new snap and reinstall it.
-
-The `single-instance` D-Bus slot also needs store approval if the Snap is
-published, because it claims a name in the `com.limusic.desktop` namespace.
-
-Install a published edge build on a test machine, run the checklist above, then
-promote the tested revision:
+Each workflow builds and publishes a GitHub Release. To also upload to the
+store, set the repository variable `PUBLISH_TO_STORE` to `true` and add the
+`SNAPCRAFT_STORE_CREDENTIALS` secret. The publish step then uploads the built
+snap to `latest/<channel>`:
 
 ```bash
-sudo snap install <store-name> --edge
-snapcraft release <store-name> <revision> stable
+snapcraft register limusic-community
+snapcraft upload --release=latest/edge ./limusic-community_1.4.1-4_amd64.snap
 ```
+
+The `single-instance` D-Bus slot and `removable-media` may need review approval
+before they can be used by a published Snap.
+
+## Release channels
+
+| Channel | Upstream source | Version scheme |
+| --- | --- | --- |
+| `stable` | latest stable tag | `<upstream>-1` |
+| `candidate` | newest prerelease tag | `<upstream>-1` |
+| `beta` | `dev` branch | `git-dev-<sha7>` |
+| `edge` | `master` branch | `git-<sha7>` |
+
+`beta` and `edge` builds use `grade: devel` and pin the exact commit with
+`source-commit`, so every release reproduces one tree. The branch builds are
+not committed to `main`; only the stable bump is.
 
 ## Automation
 
-`.github/workflows/upstream-release.yml` checks `SimoHypers/limusic` every day
-at 06:00 UTC for the latest stable release. When a version has no release here
-yet, it:
+`.github/workflows/upstream-release.yml` runs every day at 06:00 UTC and plans
+all four channels:
 
-1. bumps the packaging with `scripts/bump-upstream.sh <upstream-tag>`;
-2. builds the Snap through the reusable `build-snap.yml` workflow, with the same
-   Last.fm secrets;
-3. commits the bump to `main` with `[skip ci]`;
-4. creates a public GitHub release `v<upstream>-1` with the snap and checksum.
+1. `stable` follows the latest upstream release and runs
+   `scripts/bump-upstream.sh <tag>`, which is then committed to `main` with
+   `[skip ci]`;
+2. `candidate` follows the newest upstream prerelease and runs
+   `scripts/prepare-prerelease.sh <tag>` in the workflow only;
+3. `beta` and `edge` follow the `dev` and `master` branch heads and run
+   `scripts/switch-to-ref.sh <branch>`.
 
-The Snap version stays `<upstream>-1`; the `-1` is the packaging revision for
-that upstream release. Prereleases are ignored automatically because the
-workflow reads the upstream `releases/latest`.
+Each channel builds through the reusable `build-snap.yml` and creates its own
+GitHub release (`v<version>`, `beta-<sha7>` or `edge-<sha7>`) with the snap and
+checksum. A channel is skipped when its release already exists.
 
-To release a specific tag, or to retry a failed version:
+To rebuild a specific channel:
 
 ```bash
-gh workflow run upstream-release.yml -f tag=v1.5.0
-gh workflow run upstream-release.yml -f tag=v1.5.0 -f force=true
+gh workflow run upstream-release.yml -f channel=edge
+gh workflow run upstream-release.yml -f channel=stable -f force=true
 ```
 
 If any step fails, the workflow opens or comments on an issue titled
-`Upstream release failed for <tag>` instead of publishing a partial release.
+`Upstream release failed`.
 
-Running the bump locally is the same command:
+Running the scripts locally:
 
 ```bash
 ./scripts/bump-upstream.sh v1.5.0
+./scripts/prepare-prerelease.sh v1.5.0-rc.1
+./scripts/switch-to-ref.sh dev
 ```
-
-Nothing is published to the Snap Store automatically.
 
 ## Credits
 

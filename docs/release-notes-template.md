@@ -4,17 +4,18 @@ This is an unofficial Snap package of [Limusic](https://github.com/SimoHypers/li
 a feature-rich desktop YouTube Music client built with Tauri, Rust and
 SvelteKit. Limusic itself is developed by SimoHypers and licensed GPL-3.0.
 
-This revision packages upstream **{{UPSTREAM_TAG}}**. Last.fm API credentials are
+This build is the **{{CHANNEL}}** channel of the Snap. It packages upstream
+**{{UPSTREAM_TAG}}**. Last.fm API credentials are
 compiled into the binary at build time, so scrobbling works out of the box. No
 credentials are stored in this repository.
 
 ## Install
 
 ```bash
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v{{VERSION}}/limusic_{{VERSION}}_amd64.snap
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v{{VERSION}}/limusic_{{VERSION}}_amd64.snap.sha256
-sha256sum -c limusic_{{VERSION}}_amd64.snap.sha256
-sudo snap install --dangerous ./limusic_{{VERSION}}_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/{{RELEASE_TAG}}/limusic-community_{{VERSION}}_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/{{RELEASE_TAG}}/limusic-community_{{VERSION}}_amd64.snap.sha256
+sha256sum -c limusic-community_{{VERSION}}_amd64.snap.sha256
+sudo snap install --dangerous ./limusic-community_{{VERSION}}_amd64.snap
 ```
 
 SHA-256:
@@ -48,7 +49,7 @@ disabled in this build.
 - **Start on login** is unsupported because a strict snap cannot write the
   host's `~/.config/autostart`.
 - **Removable media** requires a one-time manual connection:
-  `sudo snap connect limusic:removable-media`.
+  `sudo snap connect limusic-community:removable-media`.
 - **wallust / pywal** palettes cannot read host dotfiles; only the built-in and
   artwork-derived palettes work.
 

@@ -18,6 +18,14 @@ on:
         description: Upstream tag to bump to before building (for example v1.5.0)
         required: false
         type: string
+      upstream_ref:
+        description: Upstream branch to build from instead of a tag (dev or master)
+        required: false
+        type: string
+      artifact_suffix:
+        description: Suffix for the uploaded artifact name, for example -edge
+        required: false
+        type: string
     outputs:
       snap:
         description: File name of the built snap
@@ -51,6 +59,12 @@ jobs:
           UPSTREAM_TAG: ${{ inputs.upstream_tag }}
         run: ./scripts/bump-upstream.sh "$UPSTREAM_TAG"
 
+      - name: Switch to the upstream branch
+        if: inputs.upstream_ref != ''
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref }}
+        run: ./scripts/switch-to-ref.sh "$UPSTREAM_REF"
+
       - name: Set up LXD
         uses: canonical/setup-lxd@v1
 
@@ -78,13 +92,13 @@ jobs:
 
       - name: Lint snap
         run: |
-          snap=$(ls limusic_*.snap | head -n1)
+          snap=$(ls limusic-community_*.snap | head -n1)
           snapcraft lint "$snap"
 
       - name: Generate checksum
         id: package
         run: |
-          snap=$(ls limusic_*.snap | head -n1)
+          snap=$(ls limusic-community_*.snap | head -n1)
           sha256sum "$snap" > "$snap.sha256"
           cat "$snap.sha256"
           version=$(sed -n 's/^version: "\(.*\)"$/\1/p' snap/snapcraft.yaml | head -n1)
@@ -94,9 +108,9 @@ jobs:
       - name: Upload snap and checksum
         uses: actions/upload-artifact@v4
         with:
-          name: limusic-snap
+          name: limusic-community-snap${{ inputs.artifact_suffix }}
           path: |
-            limusic_*.snap
-            limusic_*.snap.sha256
+            limusic-community_*.snap
+            limusic-community_*.snap.sha256
           if-no-files-found: error
           retention-days: 14
