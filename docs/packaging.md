@@ -27,7 +27,7 @@ From the repository root:
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic-community_1.4.1-5_amd64.snap`.
+The result is `limusic-community_1.4.1-6_amd64.snap`.
 
 Building on the host with `--destructive-mode` is possible but only recommended
 on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
@@ -63,7 +63,7 @@ Portuguese only, and the picker gains `Português (Portugal)` as soon as the
 ## Install a local build
 
 ```bash
-sudo snap install --dangerous ./limusic-community_1.4.1-5_amd64.snap
+sudo snap install --dangerous ./limusic-community_1.4.1-6_amd64.snap
 ```
 
 ## Last.fm credentials
@@ -172,7 +172,7 @@ Useful diagnostics:
 snap connections limusic-community
 sudo snap install snappy-debug
 snappy-debug
-snapcraft lint ./limusic-community_1.4.1-5_amd64.snap
+snapcraft lint ./limusic-community_1.4.1-6_amd64.snap
 ```
 
 ## Updates
@@ -234,8 +234,8 @@ The workflows share three building blocks:
 `stable` commits its bump to `main` with `[skip ci]`; `candidate`, `beta` and
 `edge` build from a modified workspace without committing. A channel is skipped
 when its release already exists. The `stable` release reuses the packaging
-revision currently in the recipe, so a packaging-only fix publishes `v1.4.1-5`,
-`v1.4.1-6` and so on without waiting for a new upstream tag.
+revision currently in the recipe, so a packaging-only fix publishes `v1.4.1-6`,
+`v1.4.1-7` and so on without waiting for a new upstream tag.
 
 To rebuild a channel:
 

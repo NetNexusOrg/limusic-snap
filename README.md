@@ -22,10 +22,10 @@ desktop YouTube Music client built with Tauri, Rust and SvelteKit.
 ## Install
 
 ```bash
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-5/limusic-community_1.4.1-5_amd64.snap
-curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-5/limusic-community_1.4.1-5_amd64.snap.sha256
-sha256sum -c limusic-community_1.4.1-5_amd64.snap.sha256
-sudo snap install --dangerous ./limusic-community_1.4.1-5_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-6/limusic-community_1.4.1-6_amd64.snap
+curl -LO https://github.com/NetNexusOrg/limusic-snap/releases/download/v1.4.1-6/limusic-community_1.4.1-6_amd64.snap.sha256
+sha256sum -c limusic-community_1.4.1-6_amd64.snap.sha256
+sudo snap install --dangerous ./limusic-community_1.4.1-6_amd64.snap
 ```
 
 Ubuntu 24.04 or newer on `amd64`. The app appears in the desktop menu, or run
@@ -35,7 +35,7 @@ Ubuntu 24.04 or newer on `amd64`. The app appears in the desktop menu, or run
 
 | Channel | Upstream source | Version | Status |
 | --- | --- | --- | --- |
-| `stable` | latest stable release | `1.4.1-5` | automatic, daily |
+| `stable` | latest stable release | `1.4.1-6` | automatic, daily |
 | `candidate` | latest release candidate | `<version>-<revision>` | automatic, daily |
 | `beta` | `dev` branch | `git-dev-<sha>` | dormant |
 | `edge` | `master` branch | `git-<sha>` | dormant |
@@ -75,7 +75,7 @@ sudo snap install lxd && lxd init --minimal
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic-community_1.4.1-5_amd64.snap`. Build options, Last.fm credentials,
+The result is `limusic-community_1.4.1-6_amd64.snap`. Build options, Last.fm credentials,
 CI, interfaces and publishing are documented in
 [docs/packaging.md](docs/packaging.md).
 

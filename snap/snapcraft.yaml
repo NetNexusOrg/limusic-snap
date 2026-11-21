@@ -1,7 +1,7 @@
 name: limusic-community
 title: Limusic
 base: core24
-version: "1.4.1-5"
+version: "1.4.1-6"
 grade: stable
 confinement: strict
 license: GPL-3.0-only
