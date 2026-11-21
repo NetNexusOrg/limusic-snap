@@ -48,6 +48,7 @@ jobs:
           python3 - <<'PY'
           import json
           import os
+          import re
           import subprocess
 
           repo = os.environ["GITHUB_REPOSITORY"]
@@ -66,6 +67,19 @@ jobs:
                   capture_output=True, text=True)
               return out.returncode == 0
 
+          def packaged_version(base):
+              """Packaging revision currently in the recipe when it targets base."""
+              out = subprocess.run(
+                  ["gh", "api", f"repos/{repo}/contents/snap/snapcraft.yaml",
+                   "-H", "Accept: application/vnd.github.raw"],
+                  capture_output=True, text=True)
+              if out.returncode != 0:
+                  raise SystemExit(f"gh api snap/snapcraft.yaml failed: {out.stderr.strip()}")
+              match = re.search(r'(?m)^version:\s*"([^"]+)"', out.stdout)
+              if match and match.group(1).startswith(f"{base}-"):
+                  return match.group(1)
+              return f"{base}-1"
+
           channels = ["stable", "candidate", "beta", "edge"] if wanted == "all" else [wanted]
           releases = json.loads(gh("api", "repos/SimoHypers/limusic/releases?per_page=30"))
           builds = []
@@ -73,9 +87,9 @@ jobs:
           for channel in channels:
               if channel == "stable":
                   tag = gh("api", "repos/SimoHypers/limusic/releases/latest", "--jq", ".tag_name")
-                  version = tag[1:]
+                  version = packaged_version(tag[1:])
                   entry = {"channel": channel, "kind": "tag", "ref": tag,
-                           "release_tag": f"v{version}-1", "version": f"{version}-1"}
+                           "release_tag": f"v{version}", "version": version}
               elif channel == "candidate":
                   prereleases = [r["tag_name"] for r in releases if r.get("prerelease")]
                   if not prereleases:

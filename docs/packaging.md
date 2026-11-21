@@ -240,7 +240,10 @@ all four channels:
 
 Each channel builds through the reusable `build-snap.yml` and creates its own
 GitHub release (`v<version>`, `beta-<sha7>` or `edge-<sha7>`) with the snap and
-checksum. A channel is skipped when its release already exists.
+checksum. A channel is skipped when its release already exists. The `stable`
+release reuses the packaging revision currently in the recipe, so re-running
+after a packaging-only fix publishes `v1.4.1-4`, `v1.4.1-5` and so on without
+waiting for a new upstream tag.
 
 To rebuild a specific channel:
 

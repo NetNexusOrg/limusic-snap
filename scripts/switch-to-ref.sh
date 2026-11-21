@@ -43,6 +43,7 @@ sed -i \
   -e "s/^version: \".*\"$/version: \"$version\"/" \
   -e "s/^\([[:space:]]*\)source-tag: .*$/\1source-commit: $sha/" \
   -e "s/^grade: stable$/grade: devel/" \
+  -e "s/builds upstream v[0-9][0-9.]* /builds upstream $ref at ${sha:0:7} /" \
   snap/snapcraft.yaml
 
 grep -q "^version: \"$version\"$" snap/snapcraft.yaml \
