@@ -1,0 +1,47 @@
+name: Notify failure
+
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: Channel whose build failed
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  notify:
+    name: Report the failure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open or update an issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANNEL: ${{ inputs.channel }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title="Build $CHANNEL failed"
+          body=$(cat <<TEXT
+          A build for the **$CHANNEL** channel failed.
+
+          Run: $RUN_URL
+
+          Common causes:
+          - the upstream tag or branch does not build with the current recipe;
+          - \`snap/local/disable-updater.patch\` no longer applies to the new tree;
+          - a build, lint or network failure inside the LXD container.
+
+          Re-run the workflow manually after fixing the cause.
+          TEXT
+          )
+          number=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body "$body"
+          fi

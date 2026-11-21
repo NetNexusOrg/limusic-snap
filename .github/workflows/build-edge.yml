@@ -1,0 +1,76 @@
+name: Build edge
+
+# Dormant by design: the edge channel is not published automatically. Uncomment
+# the schedule entry to activate it (hourly), or keep using "Run workflow" for a
+# one-off build. Everything else is already wired.
+on:
+  # schedule:
+  #   - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Build even if this release already exists
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: build-edge
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.plan.outputs.skip }}
+      release_tag: ${{ steps.plan.outputs.release_tag }}
+      version: ${{ steps.plan.outputs.version }}
+      kind: ${{ steps.plan.outputs.kind }}
+      ref: ${{ steps.plan.outputs.ref }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Resolve the release plan
+        id: plan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE: ${{ inputs.force || 'false' }}
+        run: ./scripts/channel-release.sh edge >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    needs: plan
+    if: needs.plan.outputs.skip != 'true'
+    uses: ./.github/workflows/build-snap.yml
+    with:
+      upstream_ref: ${{ needs.plan.outputs.ref }}
+      artifact_suffix: -edge
+    secrets: inherit
+
+  publish:
+    name: Publish
+    needs: [plan, build]
+    if: needs.plan.outputs.skip != 'true'
+    uses: ./.github/workflows/publish-snap.yml
+    with:
+      channel: edge
+      release_tag: ${{ needs.plan.outputs.release_tag }}
+      version: ${{ needs.plan.outputs.version }}
+      upstream_label: ${{ format('{0} at {1}', needs.plan.outputs.ref, needs.plan.outputs.version) }}
+      artifact_suffix: -edge
+      prerelease: true
+    secrets: inherit
+
+  notify-failure:
+    name: Report the failure
+    needs: [plan, build, publish]
+    if: failure()
+    uses: ./.github/workflows/notify-failure.yml
+    with:
+      channel: edge

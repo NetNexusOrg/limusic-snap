@@ -1,0 +1,102 @@
+name: Build stable
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Build even if this release already exists
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: build-stable
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.plan.outputs.skip }}
+      release_tag: ${{ steps.plan.outputs.release_tag }}
+      version: ${{ steps.plan.outputs.version }}
+      kind: ${{ steps.plan.outputs.kind }}
+      ref: ${{ steps.plan.outputs.ref }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Resolve the release plan
+        id: plan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE: ${{ inputs.force || 'false' }}
+        run: ./scripts/channel-release.sh stable >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    needs: plan
+    if: needs.plan.outputs.skip != 'true'
+    uses: ./.github/workflows/build-snap.yml
+    with:
+      upstream_tag: ${{ needs.plan.outputs.ref }}
+      artifact_suffix: -stable
+    secrets: inherit
+
+  commit:
+    name: Record the bump
+    needs: [plan, build]
+    if: needs.plan.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Bump the recipe
+        run: ./scripts/bump-upstream.sh "${{ needs.plan.outputs.ref }}"
+
+      - name: Commit and push
+        env:
+          TAG: ${{ needs.plan.outputs.ref }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "Already committed; nothing to push."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update to upstream $TAG [skip ci]"
+          git push
+
+  publish:
+    name: Publish
+    needs: [plan, build, commit]
+    if: needs.plan.outputs.skip != 'true'
+    uses: ./.github/workflows/publish-snap.yml
+    with:
+      channel: stable
+      release_tag: ${{ needs.plan.outputs.release_tag }}
+      version: ${{ needs.plan.outputs.version }}
+      upstream_label: ${{ needs.plan.outputs.ref }}
+      artifact_suffix: -stable
+      prerelease: false
+    secrets: inherit
+
+  notify-failure:
+    name: Report the failure
+    needs: [plan, build, commit, publish]
+    if: failure()
+    uses: ./.github/workflows/notify-failure.yml
+    with:
+      channel: stable

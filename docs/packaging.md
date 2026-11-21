@@ -214,12 +214,12 @@ before they can be used by a published Snap.
 
 ## Release channels
 
-| Channel | Upstream source | Version scheme |
-| --- | --- | --- |
-| `stable` | latest stable tag | `<upstream>-1` |
-| `candidate` | newest prerelease tag | `<upstream>-1` |
-| `beta` | `dev` branch | `git-dev-<sha7>` |
-| `edge` | `master` branch | `git-<sha7>` |
+| Channel | Upstream source | Version scheme | Status |
+| --- | --- | --- | --- |
+| `stable` | latest stable tag | `<upstream>-<revision>` | automatic, daily |
+| `candidate` | newest prerelease tag | `<upstream>-1` | automatic, daily |
+| `beta` | `dev` branch | `git-dev-<sha7>` | dormant |
+| `edge` | `master` branch | `git-<sha7>` | dormant |
 
 `beta` and `edge` builds use `grade: devel` and pin the exact commit with
 `source-commit`, so every release reproduces one tree. The branch builds are
@@ -227,37 +227,46 @@ not committed to `main`; only the stable bump is.
 
 ## Automation
 
-`.github/workflows/upstream-release.yml` runs every day at 06:00 UTC and plans
-all four channels:
+Each channel has its own workflow, so schedules, permissions and failures are
+independent:
 
-1. `stable` follows the latest upstream release and runs
-   `scripts/bump-upstream.sh <tag>`, which is then committed to `main` with
-   `[skip ci]`;
-2. `candidate` follows the newest upstream prerelease and runs
-   `scripts/prepare-prerelease.sh <tag>` in the workflow only;
-3. `beta` and `edge` follow the `dev` and `master` branch heads and run
-   `scripts/switch-to-ref.sh <branch>`.
+- `.github/workflows/build-stable.yml` runs every day at 06:00 UTC;
+- `.github/workflows/build-candidate.yml` runs every day at 06:00 UTC;
+- `.github/workflows/build-beta.yml` and `build-edge.yml` are **dormant**: they
+  only run on demand. Uncomment the `schedule` block in the file to activate
+  them.
 
-Each channel builds through the reusable `build-snap.yml` and creates its own
-GitHub release (`v<version>`, `beta-<sha7>` or `edge-<sha7>`) with the snap and
-checksum. A channel is skipped when its release already exists. The `stable`
-release reuses the packaging revision currently in the recipe, so re-running
-after a packaging-only fix publishes `v1.4.1-4`, `v1.4.1-5` and so on without
-waiting for a new upstream tag.
+The workflows share three building blocks:
 
-To rebuild a specific channel:
+- `scripts/channel-release.sh <channel>` resolves the release tag and version,
+  and prints `skip=true` when that release already exists;
+- `build-snap.yml` prepares the source (bump for stable, prerelease tag for
+  candidate, `source-commit` for branches), packs, lints and uploads the
+  artifact;
+- `publish-snap.yml` renders `docs/release-notes-template.md` and creates the
+  GitHub release, optionally uploading to the Snap Store.
+
+`stable` commits its bump to `main` with `[skip ci]`; `candidate`, `beta` and
+`edge` build from a modified workspace without committing. A channel is skipped
+when its release already exists. The `stable` release reuses the packaging
+revision currently in the recipe, so a packaging-only fix publishes `v1.4.1-4`,
+`v1.4.1-5` and so on without waiting for a new upstream tag.
+
+To rebuild a channel:
 
 ```bash
-gh workflow run upstream-release.yml -f channel=edge
-gh workflow run upstream-release.yml -f channel=stable -f force=true
+gh workflow run build-stable.yml -f force=true
+gh workflow run build-candidate.yml -f force=true
+gh workflow run build-edge.yml -f force=true   # dormant channel
 ```
 
 If any step fails, the workflow opens or comments on an issue titled
-`Upstream release failed`.
+`Build <channel> failed`.
 
 Running the scripts locally:
 
 ```bash
+GITHUB_REPOSITORY=NetNexusOrg/limusic-snap ./scripts/channel-release.sh stable
 ./scripts/bump-upstream.sh v1.5.0
 ./scripts/prepare-prerelease.sh v1.5.0-rc.1
 ./scripts/switch-to-ref.sh dev

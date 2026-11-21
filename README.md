@@ -39,12 +39,15 @@ Ubuntu 24.04 or newer on `amd64`. The app appears in the desktop menu, or run
 
 ## Release channels
 
-| Channel | Upstream source | Version |
-| --- | --- | --- |
-| `stable` | latest stable release | `1.4.1-4` |
-| `candidate` | latest release candidate | `<version>-<revision>` |
-| `beta` | `dev` branch | `git-dev-<sha>` |
-| `edge` | `master` branch | `git-<sha>` |
+| Channel | Upstream source | Version | Status |
+| --- | --- | --- | --- |
+| `stable` | latest stable release | `1.4.1-4` | automatic, daily |
+| `candidate` | latest release candidate | `<version>-<revision>` | automatic, daily |
+| `beta` | `dev` branch | `git-dev-<sha>` | dormant |
+| `edge` | `master` branch | `git-<sha>` | dormant |
+
+Only `stable` and `candidate` are built automatically. The `beta` and `edge`
+workflows exist but are not scheduled; they run only when triggered by hand.
 
 The Snap Store name `limusic` belongs to another publisher, so this project is
 registered as `limusic-community`. Store publishing is prepared but disabled;

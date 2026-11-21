@@ -1,0 +1,99 @@
+name: Publish Snap
+
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: Channel name used in the release notes
+        required: true
+        type: string
+      release_tag:
+        description: Git tag for the GitHub release
+        required: true
+        type: string
+      version:
+        description: Packaging version that was built
+        required: true
+        type: string
+      upstream_label:
+        description: Upstream ref and version shown in the release notes
+        required: true
+        type: string
+      artifact_suffix:
+        description: Suffix used by build-snap.yml for the artifact name
+        required: true
+        type: string
+      prerelease:
+        description: Mark the GitHub release as a prerelease
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish ${{ inputs.channel }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Download the snap
+        uses: actions/download-artifact@v4
+        with:
+          name: limusic-community-snap${{ inputs.artifact_suffix }}
+
+      - name: Render the release notes
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          VERSION: ${{ inputs.version }}
+          UPSTREAM_TAG: ${{ inputs.upstream_label }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          snap=$(ls limusic-community_*.snap | head -n1)
+          sha=$(cut -d' ' -f1 "$snap.sha256")
+          sed \
+            -e "s|{{VERSION}}|$VERSION|g" \
+            -e "s|{{RELEASE_TAG}}|$RELEASE_TAG|g" \
+            -e "s|{{UPSTREAM_TAG}}|$UPSTREAM_TAG|g" \
+            -e "s|{{SHA256}}|$sha|g" \
+            -e "s|{{CHANNEL}}|$CHANNEL|g" \
+            docs/release-notes-template.md > notes.md
+          cat notes.md
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          VERSION: ${{ inputs.version }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          snap=$(ls limusic-community_*.snap | head -n1)
+          args=()
+          if [[ $PRERELEASE == true ]]; then
+            args+=(--prerelease)
+          fi
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target main \
+            --title "Limusic $VERSION — unofficial Snap" \
+            --notes-file notes.md \
+            "${args[@]}" "$snap" "$snap.sha256"
+
+      - name: Publish to the Snap Store
+        if: vars.PUBLISH_TO_STORE == 'true'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          SNAP_CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SNAPCRAFT_STORE_CREDENTIALS}" ]; then
+            echo "::error::SNAPCRAFT_STORE_CREDENTIALS is not set"
+            exit 1
+          fi
+          snap=$(ls limusic-community_*.snap | head -n1)
+          snapcraft upload --release="latest/$SNAP_CHANNEL" "$snap"
