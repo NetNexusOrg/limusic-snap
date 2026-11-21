@@ -48,8 +48,6 @@ disabled in this build.
   deb/AppImage if you need RPC.
 - **Start on login** is unsupported because a strict snap cannot write the
   host's `~/.config/autostart`.
-- **Removable media** requires a one-time manual connection:
-  `sudo snap connect limusic-community:removable-media`.
 - **wallust / pywal** palettes cannot read host dotfiles; only the built-in and
   artwork-derived palettes work.
 

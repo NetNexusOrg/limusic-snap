@@ -84,16 +84,3 @@ jobs:
             --notes-file notes.md \
             "${args[@]}" "$snap" "$snap.sha256"
 
-      - name: Publish to the Snap Store
-        if: vars.PUBLISH_TO_STORE == 'true'
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-          SNAP_CHANNEL: ${{ inputs.channel }}
-        run: |
-          set -euo pipefail
-          if [ -z "${SNAPCRAFT_STORE_CREDENTIALS}" ]; then
-            echo "::error::SNAPCRAFT_STORE_CREDENTIALS is not set"
-            exit 1
-          fi
-          snap=$(ls limusic-community_*.snap | head -n1)
-          snapcraft upload --release="latest/$SNAP_CHANNEL" "$snap"

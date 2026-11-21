@@ -27,7 +27,7 @@ From the repository root:
 snapcraft pack --use-lxd
 ```
 
-The result is `limusic-community_1.4.1-4_amd64.snap`.
+The result is `limusic-community_1.4.1-5_amd64.snap`.
 
 Building on the host with `--destructive-mode` is possible but only recommended
 on a disposable Ubuntu 24.04 machine, because it installs build dependencies on
@@ -63,8 +63,7 @@ Portuguese only, and the picker gains `Português (Portugal)` as soon as the
 ## Install a local build
 
 ```bash
-sudo snap install --dangerous ./limusic-community_1.4.1-4_amd64.snap
-sudo snap connect limusic-community:removable-media   # only for external drives
+sudo snap install --dangerous ./limusic-community_1.4.1-5_amd64.snap
 ```
 
 ## Last.fm credentials
@@ -99,14 +98,14 @@ local builds.
 `.github/workflows/build-snap.yml` builds the Snap on `ubuntu-24.04` with
 `canonical/setup-lxd@v1` and `snapcraft pack --use-lxd`, runs `snapcraft lint`,
 writes a SHA-256 checksum and uploads both files as the `limusic-snap` workflow
-artifact. It runs on pushes to `main`, `v*` tags, pull requests touching
-`snap/**` or the workflow, and manual dispatch.
+artifact. It runs on pushes to `main`, pull requests touching `snap/**`,
+`scripts/**` or the workflow, and manual dispatch.
 
 Last.fm is optional in CI: when the repository secrets `LASTFM_API_KEY` and
 `LASTFM_API_SECRET` exist, the workflow writes the gitignored
 `snap/local/lastfm.keys` before building; otherwise it emits a warning and
-builds without Last.fm support. CI never publishes to the Snap Store or creates
-a GitHub Release.
+builds without Last.fm support. The build workflow only builds and lints;
+creating releases is the job of the per-channel publishing workflows.
 
 ## Interfaces
 
@@ -120,15 +119,11 @@ The Snap declares the minimum needed for its documented behavior:
   inside the sandbox`. It is auto-connected and grants no payload access.
 - `audio-playback` — libmpv output through PulseAudio/PipeWire.
 - `home` — local music in non-hidden home directories.
-- `removable-media` — local music on removable volumes. snapd does not
-  auto-connect this interface for public snaps; connect it manually with
-  `sudo snap connect limusic-community:removable-media` only when needed.
 - `mpris` slot — owns `org.mpris.MediaPlayer2.limusic` for media keys/widgets.
 - `single-instance` slot — session D-Bus name
   `com.limusic.desktop.SingleInstance`, owned by the Tauri single-instance
   plugin. A second launch hands its arguments to the running window instead of
-  starting a new process. Publishing the Snap requires store approval for this
-  name.
+  starting a new process. Store publishing would require approval for this name.
 
 Desktop, display, GPU and settings interfaces come from the GNOME extension.
 
@@ -164,7 +159,6 @@ After installing:
 - [ ] Media keys and the desktop media widget control playback through MPRIS.
 - [ ] The tray icon appears on a desktop with a StatusNotifierWatcher.
 - [ ] Local music under `$HOME` plays.
-- [ ] Local music on a connected removable volume plays.
 - [ ] Discord Rich Presence fails soft without crashing the app.
 - [ ] The in-app updater does not offer a Tauri update.
 - [ ] Last.fm works when keys are present, or reports “not configured” without
@@ -175,10 +169,10 @@ After installing:
 Useful diagnostics:
 
 ```bash
-snap connections limusic
+snap connections limusic-community
 sudo snap install snappy-debug
 snappy-debug
-snapcraft lint ./limusic-community_1.4.1-4_amd64.snap
+snapcraft lint ./limusic-community_1.4.1-5_amd64.snap
 ```
 
 ## Updates
@@ -193,24 +187,15 @@ sudo snap refresh limusic-community
 
 For a local build, rebuild and reinstall with `--dangerous`.
 
-## Publishing to the Snap Store
+## Publishing
 
-Publishing is prepared but **disabled**. The Snap is registered as
-`limusic-community`; the name `limusic` belongs to another publisher
-(`sidaliteir`, maintainer of `sidalit/limusic-snap`) and cannot be used.
+Releases are published only to GitHub, one release per channel. Nothing is
+uploaded to the Snap Store, so the `mpris` and `single-instance` slots never go
+through store review.
 
-Each workflow builds and publishes a GitHub Release. To also upload to the
-store, set the repository variable `PUBLISH_TO_STORE` to `true` and add the
-`SNAPCRAFT_STORE_CREDENTIALS` secret. The publish step then uploads the built
-snap to `latest/<channel>`:
-
-```bash
-snapcraft register limusic-community
-snapcraft upload --release=latest/edge ./limusic-community_1.4.1-4_amd64.snap
-```
-
-The `single-instance` D-Bus slot and `removable-media` may need review approval
-before they can be used by a published Snap.
+The store name `limusic` belongs to another publisher (`sidaliteir`,
+maintainer of `sidalit/limusic-snap`); this project registered
+`limusic-community`, which stays unused.
 
 ## Release channels
 
@@ -244,13 +229,13 @@ The workflows share three building blocks:
   candidate, `source-commit` for branches), packs, lints and uploads the
   artifact;
 - `publish-snap.yml` renders `docs/release-notes-template.md` and creates the
-  GitHub release, optionally uploading to the Snap Store.
+  GitHub release.
 
 `stable` commits its bump to `main` with `[skip ci]`; `candidate`, `beta` and
 `edge` build from a modified workspace without committing. A channel is skipped
 when its release already exists. The `stable` release reuses the packaging
-revision currently in the recipe, so a packaging-only fix publishes `v1.4.1-4`,
-`v1.4.1-5` and so on without waiting for a new upstream tag.
+revision currently in the recipe, so a packaging-only fix publishes `v1.4.1-5`,
+`v1.4.1-6` and so on without waiting for a new upstream tag.
 
 To rebuild a channel:
 
