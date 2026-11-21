@@ -36,7 +36,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: snap-${{ github.workflow }}-${{ github.ref }}
+  # The suffix keeps the four matrix legs of upstream-release.yml in separate
+  # groups; without it they share github.workflow/github.ref and cancel each
+  # other. Direct push and pull request builds have an empty suffix.
+  group: snap-${{ github.workflow }}-${{ github.ref }}-${{ inputs.artifact_suffix }}
   cancel-in-progress: true
 
 jobs:
